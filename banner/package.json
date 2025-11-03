@@ -1,0 +1,40 @@
+{
+  "name": "ts-banner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vite + TypeScript project with Jest unit tests and Playwright browser tests.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "npx --yes prettier . --write",
+    "format:check": "npx --yes prettier . --check"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.12.0",
+    "@playwright/test": "^1.48.0",
+    "@testing-library/dom": "^10.4.1",
+    "@types/jest": "^29.5.12",
+    "eslint": "^9.12.0",
+    "globals": "^15.11.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "prettier": "^3.3.3",
+    "sass": "^1.80.6",
+    "sass-embedded": "^1.93.2",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.8.0",
+    "vite": "^5.4.10",
+    "vite-css-prefixer": "^1.0.4"
+  }
+}

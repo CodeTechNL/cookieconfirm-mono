@@ -1,0 +1,3 @@
+interface RenderableInterface {
+  render(): string
+}
