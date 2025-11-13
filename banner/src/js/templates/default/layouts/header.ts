@@ -18,7 +18,7 @@ export default class Header extends AbstractLayout {
   }
 
   getWebsiteLogo() {
-    return `<img id="logo" src="${this.banner.design.general.company_logo}" alt="Website logo" />`
+    return `<img id="logo" src="${this.banner.design.general.company_logo}" alt="${this.banner.branding.name}" />`
   }
 
   getPoweredBy(websiteUrl: string, websiteLogoUrl: string) {

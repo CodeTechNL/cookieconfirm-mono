@@ -1,12 +1,23 @@
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 import { resolve } from 'path'
+import * as dotenv from 'dotenv';
+import * as dotenvExpand from 'dotenv-expand';
+// .env laden
+const envResult = dotenv.config({
+  path: '../.env',
+});
+dotenvExpand.expand(envResult);
 
 export default defineConfig({
   build: {
     copyPublicDir: false,
     rollupOptions: {
-      input: [resolve(__dirname, 'src/js/consent.ts'), resolve(__dirname, 'src/images/logo.png')],
+      input: [
+        resolve(__dirname, 'src/js/consent.ts'),
+        resolve(__dirname, 'src/images/logo.png'),
+        resolve(__dirname, 'src/images/image-website.png')
+      ],
       output: {
         entryFileNames: 'js/[name].js',
         chunkFileNames: 'js/[name].js',

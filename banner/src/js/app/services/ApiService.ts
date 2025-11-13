@@ -8,7 +8,7 @@ export class ApiService {
   }
 
   store(event: EventDetailMap['consentGiven']): void {
-    fetch('https://b3sxcv3tyfq76r3kyab5gue2am0sgkxd.lambda-url.us-east-1.on.aws', {
+    fetch('https://4gugyupodxlfhzzsdtk3aygnya0ymspw.lambda-url.us-east-1.on.aws', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

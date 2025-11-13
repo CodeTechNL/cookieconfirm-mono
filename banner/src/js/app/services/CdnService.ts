@@ -13,7 +13,7 @@ class CdnService {
   }
 
   getRequestUrl(endpoint: string) {
-    return `${this.apiUrl}/${endpoint}`
+    return `${this.apiUrl}/${this.domain}/${endpoint}`
   }
 
   makeRequest(endpoint: string): Promise<Response> {
@@ -44,5 +44,5 @@ class CdnService {
 export default new CdnService(
   LocalStorageService,
   import.meta.env.VITE_CDN_URL,
-  window.location.host,
+  window.ccDomain,
 )

@@ -1,7 +1,7 @@
 {
   "version": 1758544876,
   "translations": {
-    "title": "This website uses cookies",
+    "title": "This website uses cookies (lang EN, loc DE)",
     "explanation": "We use cookies to personalize content and ads, provide social media features, and analyze our website traffic. We also share information about your use of our site with our social media, advertising, and analytics partners. These partners may combine it with other information you've provided to them or that they've collected from your use of their services.",
     "privacy_policy_link_text": "Privacy Policy",
     "privacy_policy_url": "https://cookieconfirm.com/privacybeleid",
@@ -81,7 +81,7 @@
     },
     "branding": {
       "icon": "https://assets.cookieconfirm.com/images/icons/icon-orange.png",
-      "logo": "/images/logo-cc.png",
+      "logo": "/images/logo.png",
       "url": "https://cookieconfirm-website.test",
       "name": "Cookie Confirm",
       "position": "left"

@@ -30,7 +30,7 @@ class LocalStorageService {
   }
 
   getBanner() : StylingInterface{
-    return JSON.parse(this.getValue('cc_banner'))
+    return JSON.parse(this.getValue('cc_banner')) || {}
   }
 }
 

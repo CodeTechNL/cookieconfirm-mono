@@ -1,0 +1,10 @@
+<html>
+<head>
+    <script>
+        fetch('https://jaglvjr77afntp3otqkf3uos240cqnkl.lambda-url.us-east-1.on.aws/?consent=all')
+            .then(response => response.json())   // of .json() als je JSON verwacht
+            .then(data => console.log(data))
+            .catch(error => console.error(error));
+    </script>
+</head>
+</html>

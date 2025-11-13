@@ -40,6 +40,6 @@ declare global {
 window.ccListen = ccOnEvent
 window.ccDispatch = ccDispatchEvent
 window.ccPlugins = [];
-window.ccDomain = window.location.hostname
+window.ccDomain = window.ccDomain || window.location.hostname
   .replace(/^https?:\/\/(www\.)?/, 'https://')
   .replace(/^www\./, '')

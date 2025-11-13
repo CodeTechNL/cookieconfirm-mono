@@ -5,8 +5,8 @@
     "cdk": "bin/cdk.js"
   },
   "scripts": {
-    "build-banner": "cd ./banner && npm run build",
+    "build-banner": "cd ./banner && npm run build --mode=production",
     "cdk": "cd ./cdk && cdk --profile=cookieconfirm",
-    "deploy-banner": "npm run cdk deploy CdnStack"
+    "deploy-banner": "npm run build-banner && npm run cdk deploy -- --all"
   }
 }

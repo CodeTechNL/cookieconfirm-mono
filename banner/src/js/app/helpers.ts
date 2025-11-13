@@ -30,8 +30,7 @@ export const ccDispatchEvent = <E extends EventTypes>(
   event: E,
   detail: EventDetailMap[E],
 ): void => {
-  console.log('Dispatching: ' + event);
-  console.log(detail);
+
   window.dispatchEvent(new CustomEvent<EventDetailMap[E]>(event, { detail }))
 }
 

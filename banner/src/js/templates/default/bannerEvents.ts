@@ -26,10 +26,11 @@ export class BannerEvents implements HasBannerEvents {
   registerConsentButtons() {
     this.onConsentClick('rejectAll', () => {
       ccDispatchEvent('consentGiven', {
+        country: '',
         method: 'rejectAll',
         consent: ['functional'],
         consentId: this.consentId,
-        domain: this.domain,
+        domain: this.domain
       })
     })
 
@@ -46,6 +47,7 @@ export class BannerEvents implements HasBannerEvents {
         consent: selected,
         consentId: this.consentId,
         domain: this.domain,
+        country: '',
       })
     })
 
@@ -59,6 +61,7 @@ export class BannerEvents implements HasBannerEvents {
         consent: ['functional', 'marketing', 'analytics'],
         consentId: this.consentId,
         domain: this.domain,
+        country: '',
       })
     })
 
@@ -68,6 +71,7 @@ export class BannerEvents implements HasBannerEvents {
         consent: ['functional'],
         consentId: this.consentId,
         domain: this.domain,
+        country: '',
       })
     })
   }

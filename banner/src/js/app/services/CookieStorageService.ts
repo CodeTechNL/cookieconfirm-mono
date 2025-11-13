@@ -15,7 +15,7 @@ class CookieStorageService {
     hours: number = 0,
     minutes: number = 0,
   ) {
-    console.log(name, days, hours, minutes)
+
     const expiresMs = ((days * 24 + hours) * 60 + minutes) * 60 * 1000
     const date = new Date(Date.now() + expiresMs)
 
@@ -57,7 +57,7 @@ class CookieStorageService {
 
   setAcceptedCookies(cookies: ConsentTypes[]): void {
     console.log('Setting the cookies that are accepted')
-    console.log(cookies)
+
     this.setCookie('CC_p_accepted_cookies', JSON.stringify(cookies))
   }
 

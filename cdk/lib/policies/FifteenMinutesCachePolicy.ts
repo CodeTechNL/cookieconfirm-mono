@@ -15,3 +15,17 @@ export const fifteenMinPolicy = (stack: cdk.Stack) => {
         enableAcceptEncodingGzip: true,
     })
 }
+
+export const bannerComponentCachePolicy = (stack: cdk.Stack) => {
+    return new CachePolicy(stack, "BannerComponentCachePolicy", {
+        cachePolicyName: "BannerComponentCachePolicy",
+        defaultTtl: cdk.Duration.minutes(15),
+        maxTtl: cdk.Duration.minutes(15),
+        minTtl: cdk.Duration.minutes(0),
+        headerBehavior: CacheHeaderBehavior.none(),
+        cookieBehavior: CacheCookieBehavior.none(),
+        queryStringBehavior: CacheQueryStringBehavior.allowList('v'),
+        enableAcceptEncodingBrotli: true,
+        enableAcceptEncodingGzip: true,
+    })
+}

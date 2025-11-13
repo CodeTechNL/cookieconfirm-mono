@@ -69,6 +69,7 @@ export class BannerDataService {
 
     const banner = this.localStorage.getBanner();
 
+    console.log(banner.version, this.cookieStorage.getVersion());
     if(banner.version !== this.cookieStorage.getVersion()){
       console.log('Getting full new version');
       const data =  this.cdn.getBanner(geoCountry, bannerLanguage);

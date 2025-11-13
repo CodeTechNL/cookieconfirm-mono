@@ -8,6 +8,7 @@ class ConsentPlugin extends AbstractPlugin{
 
   register() {
     window.ccListen('consentGiven', (e) => {
+        console.log(e);
       this.storeConsent(e);
       window.ccDispatch('enableConsent', e.consent)
     })
@@ -15,20 +16,26 @@ class ConsentPlugin extends AbstractPlugin{
 
   storeConsent(event: EventDetailMap['consentGiven']) {
 
-    fetch('https://b3sxcv3tyfq76r3kyab5gue2am0sgkxd.lambda-url.us-east-1.on.aws', {
+      console.log('Store the consent');
+      console.log(event);
+      const payload = {
+          id: event.consentId,
+          consentMethod: event.method,
+          analytics: event.consent.includes('analytics'),
+          marketing: event.consent.includes('marketing'),
+          functional: true,
+          country: event.country,
+          domain: window.ccDomain,
+          path: window.location.pathname,
+      }
+      
+      console.log(payload);
+    fetch('https://4gugyupodxlfhzzsdtk3aygnya0ymspw.lambda-url.us-east-1.on.aws', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: JSON.stringify({
-        id: event.consentId,
-        consentMethod: event.method,
-        analytics: event.consent.includes('analytics'),
-        marketing: event.consent.includes('marketing'),
-        functional: true,
-        country: event.country,
-        domain: event.domain,
-      }),
+      body: new URLSearchParams({ payload: JSON.stringify(payload) }),
     })
   }
 }
