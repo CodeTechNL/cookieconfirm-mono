@@ -1,23 +1,21 @@
 import {Construct} from "constructs";
 import {
-    AllowedMethods, CachePolicy, CfnFunction,
+    AllowedMethods, CachePolicy,
     Distribution, FunctionCode, FunctionEventType, IOrigin, OriginProtocolPolicy,
     OriginRequestHeaderBehavior, OriginRequestPolicy,
-    PriceClass, ResponseHeadersPolicy,
+    PriceClass,
     SecurityPolicyProtocol,
     ViewerProtocolPolicy, Function as CfFunction
 } from "aws-cdk-lib/aws-cloudfront";
 import * as cdk from "aws-cdk-lib";
 import {HttpOrigin} from "aws-cdk-lib/aws-cloudfront-origins";
-import {NodejsFunction} from "aws-cdk-lib/aws-lambda-nodejs";
-import {Fn} from "aws-cdk-lib";
-import {FunctionUrl} from "aws-cdk-lib/aws-lambda";
-import {fromRoot} from "../../../path-helpers";
+import {fromRoot} from "../../../helpers";
 import {Certificate} from "aws-cdk-lib/aws-certificatemanager";
 
 type AssetsDistributionResourceProps = {
     origin: IOrigin
     certificateArn: string
+    domainNames: string[]
 }
 
 export class CdnDistributionResource extends Construct {
@@ -26,16 +24,14 @@ export class CdnDistributionResource extends Construct {
     constructor(scope: Construct, id: string, props: AssetsDistributionResourceProps) {
         super(scope, id);
 
-        const {origin, certificateArn} = props;
+        const {origin, certificateArn, domainNames} = props;
 
         this.resource = new Distribution(this, "SiteDistribution", {
             comment: "CDN for serving banner assets",
             defaultRootObject: "index.html",
             minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
             priceClass: PriceClass.PRICE_CLASS_100,
-            domainNames: [
-                'banner.cookieconfirm.com'
-            ],
+            domainNames,
             certificate: Certificate.fromCertificateArn(
                 this,
                 "Certificate",
@@ -53,7 +49,7 @@ export class CdnDistributionResource extends Construct {
         new cdk.CfnOutput(this, "CloudFrontDomain", { value: this.getResource().domainName })
     }
 
-    public addInitJsonBehavior(origin: IOrigin, cachePolicy: CachePolicy): this {
+    public addInitJsonBehavior(path: string, origin: IOrigin, cachePolicy: CachePolicy): this {
 
         const countryHeaderPolicy = new OriginRequestPolicy(this, 'CountryHeaderPolicy', {
             originRequestPolicyName: 'IncludeCountryHeader',
@@ -61,7 +57,7 @@ export class CdnDistributionResource extends Construct {
             headerBehavior: OriginRequestHeaderBehavior.allowList('CloudFront-Viewer-Country'),
         });
 
-        this.getResource().addBehavior('/banner/*/init.json', origin, {
+        this.getResource().addBehavior(path, origin, {
             viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
             allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
             cachePolicy: cachePolicy,
@@ -86,8 +82,8 @@ export class CdnDistributionResource extends Construct {
         });
     }
 
-    public addBannerComponentsBehavior(origin: IOrigin, cachePolicy: CachePolicy): this {
-        this.getResource().addBehavior('/banner/*', origin, {
+    public addDefaultBehavior(path: string, origin: IOrigin, cachePolicy: CachePolicy){
+        this.getResource().addBehavior(path, origin, {
             viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
             allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
             cachePolicy: cachePolicy,
@@ -97,16 +93,14 @@ export class CdnDistributionResource extends Construct {
         return this;
     }
 
-    addConsentStorageBehavior(url: string){
-        this.getResource().addBehavior("/api/v1/store-consent", new HttpOrigin(url, {
+    addConsentStorageBehavior(path: string, url: string){
+        this.getResource().addBehavior(path, new HttpOrigin(url, {
             protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
         }), {
             viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
             allowedMethods: AllowedMethods.ALLOW_ALL,
             cachePolicy: CachePolicy.CACHING_DISABLED,
-            // BELANGRIJK: Host NIET doorsturen naar de Function URL
             originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-            // (optioneel) CloudFront Function of Lambda@Edge hieronder
         });
         return this;
     }

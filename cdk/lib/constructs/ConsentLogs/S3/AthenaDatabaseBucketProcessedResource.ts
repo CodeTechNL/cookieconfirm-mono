@@ -6,7 +6,7 @@ type AthenaDatabaseBucketProps = {
     bucketName: string
 }
 
-export class AthenaDatabaseBucketResource extends Construct {
+export class AthenaDatabaseBucketProcessedResource extends Construct {
     private readonly resource: Bucket;
 
     constructor(scope: Construct, id: string, props: AthenaDatabaseBucketProps) {
@@ -15,27 +15,12 @@ export class AthenaDatabaseBucketResource extends Construct {
         const {bucketName} = props;
 
         this.resource = new Bucket(this, id, {
-            bucketName: bucketName,
+            bucketName: `${bucketName}-processed`,
             blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
             enforceSSL: false,
             removalPolicy: RemovalPolicy.DESTROY,
             autoDeleteObjects: true,
             lifecycleRules: [
-                {
-                    prefix: 'logs/',
-                    expiration: Duration.days(365), // delete after 1 year
-                    transitions: [
-                        {
-                            storageClass: StorageClass.INTELLIGENT_TIERING,
-                            transitionAfter: Duration.days(0)
-                        }
-                    ]
-                },
-                {
-                    enabled: true,
-                    prefix: "requests/",
-                    expiration: Duration.days(180),
-                },
                 {
                     enabled: true,
                     prefix: "athena-results/",

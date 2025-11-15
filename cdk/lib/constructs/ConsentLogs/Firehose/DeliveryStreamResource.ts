@@ -7,6 +7,9 @@ import {Bucket} from "aws-cdk-lib/aws-s3";
 type DeliveryStreamProps = {
     bucket: Bucket
     streamName: string
+    storagePathS3: string
+    streamInterval: number
+    streamSize: number
 }
 
 export class DeliveryStreamResource extends Construct {
@@ -15,7 +18,7 @@ export class DeliveryStreamResource extends Construct {
     constructor(scope: Construct, id: string, props: DeliveryStreamProps) {
         super(scope, id);
 
-        const {bucket, streamName} = props;
+        const {bucket, streamName, storagePathS3, streamInterval,streamSize} = props;
 
         const firehoseRole = new Role(this, 'FirehoseRole', {
             assumedBy: new ServicePrincipal('firehose.amazonaws.com'),
@@ -30,13 +33,15 @@ export class DeliveryStreamResource extends Construct {
             extendedS3DestinationConfiguration: {
                 bucketArn: bucket.bucketArn,
                 roleArn: firehoseRole.roleArn,
-                bufferingHints: { intervalInSeconds: 60, sizeInMBs: 5 },
+                bufferingHints: {
+                    intervalInSeconds: streamInterval,
+                    sizeInMBs: streamSize
+                },
                 compressionFormat: 'GZIP',
-                prefix: 'consent-logs/date=!{timestamp:dd-MM-yyyy}/',
+                prefix: `${storagePathS3}/date=!{timestamp:yyyy-MM-dd}/`,
                 errorOutputPrefix: 'errors/!{firehose:error-output-type}/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/'
             }
         });
-
     }
 
     public getResource(): CfnDeliveryStream {

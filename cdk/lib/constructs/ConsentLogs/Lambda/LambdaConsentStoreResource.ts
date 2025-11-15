@@ -6,7 +6,7 @@ import {
 import {Bucket} from "aws-cdk-lib/aws-s3";
 import {LogGroup, RetentionDays} from "aws-cdk-lib/aws-logs";
 import {NodejsFunction, OutputFormat} from "aws-cdk-lib/aws-lambda-nodejs";
-import {fromRoot} from "../../../path-helpers";
+import {fromRoot} from "../../../helpers";
 import {Duration, Fn} from "aws-cdk-lib";
 import {PolicyStatement} from "aws-cdk-lib/aws-iam";
 import * as cdk from "aws-cdk-lib";

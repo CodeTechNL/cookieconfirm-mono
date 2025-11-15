@@ -3,7 +3,7 @@ import * as cdk from "aws-cdk-lib";
 import {Distribution} from "aws-cdk-lib/aws-cloudfront";
 import {Bucket} from "aws-cdk-lib/aws-s3";
 import {BucketDeployment, CacheControl, Source} from "aws-cdk-lib/aws-s3-deployment";
-import {fromRoot} from "../../../../path-helpers";
+import {fromRoot} from "../../../../helpers";
 
 type UploadBannerResourceProps = {
     cloudfront: Distribution
@@ -20,7 +20,7 @@ export class UploadLocalhostBannerResource extends Construct {
 
         this.resource = new BucketDeployment(this, "DeployLocalhostBannerAssets", {
             prune: false,
-            destinationKeyPrefix: 'banner/localhost',
+            destinationKeyPrefix: 'banner',
             sources: [
                 Source.asset(fromRoot("banner", 'development', 'data-sources')),
             ],

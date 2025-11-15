@@ -2,5 +2,9 @@
   "acknowledged-issue-numbers": [
     34892,
     34892
-  ]
+  ],
+  "hosted-zone:account=585008041582:domainName=cookieconfirm.tech:region=eu-west-3": {
+    "Id": "/hostedzone/Z00923303A89VFN8U9SC1",
+    "Name": "cookieconfirm.tech."
+  }
 }

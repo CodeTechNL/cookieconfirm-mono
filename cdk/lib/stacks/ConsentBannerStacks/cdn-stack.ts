@@ -7,11 +7,18 @@ import {UploadBannerResource} from "../../constructs/ConsentLogs/S3/StaticFiles/
 import {UploadLocalhostBannerResource} from "../../constructs/ConsentLogs/S3/StaticFiles/UploadLocalhostBannerResource";
 import {CacheCookieBehavior, CacheHeaderBehavior, CachePolicy, CacheQueryStringBehavior,} from "aws-cdk-lib/aws-cloudfront";
 import {LambdaConsentStoreResource} from "../../constructs/ConsentLogs/Lambda/LambdaConsentStoreResource";
+import {CloudfrontDomainSetup} from "../../constructs/ConsentLogs/Route53/CloudfrontDomainSetup";
 
 interface SharedStackProps extends StackProps {
+    app: {
+        url: string;
+        cdnUrl: string;
+    },
     services: {
         cloudfront: {
             certificateArn: string
+            hostedZoneDomain: string,
+            recordName: string
         },
         firehose: {
             streamName: string
@@ -33,7 +40,7 @@ export class CdnStack extends Stack {
         const {javascriptBucketName, jsonFilesBucketName} = props.services.s3;
         const {athenaConsentLogBucket} = props.services.athena;
         const {streamName} = props.services.firehose;
-        const {certificateArn} = props.services.cloudfront;
+        const {certificateArn, hostedZoneDomain, recordName} = props.services.cloudfront;
 
         /**
          * Bucket for storing the JavaScript files
@@ -47,7 +54,16 @@ export class CdnStack extends Stack {
 
         const distributionResource = new CdnDistributionResource(this, 'AssetsDistributionResource', {
             origin: javascriptBucket.getOrigin(),
-            certificateArn: certificateArn
+            certificateArn: certificateArn,
+            domainNames: [
+                props.app.cdnUrl
+            ],
+        });
+
+        new CloudfrontDomainSetup(this, 'CloudfrontDomainSetup', {
+            hostedZoneDomain: hostedZoneDomain,
+            recordName: recordName, // maakt banner.cookieconfirm.com
+            distribution: distributionResource.getResource(),
         });
 
         const consentFunction = new LambdaConsentStoreResource(this, 'LambdaConsentStoreResource', {
@@ -56,12 +72,17 @@ export class CdnStack extends Stack {
             streamName: streamName
         })
 
-        const fifteenMinuteCache = this.createCachePolicy();
+        const fifteenMinuteCache = this.createFifteenMinutesCachePolicy();
+        const oneDayCachePolicy = this.createOneDayCachePolicy();
 
         distributionResource
-            .addInitJsonBehavior(jsonFilesBucket.getOrigin(), fifteenMinuteCache)
-            .addBannerComponentsBehavior(jsonFilesBucket.getOrigin(), fifteenMinuteCache)
-            .addConsentStorageBehavior(consentFunction.getIngestUrl());
+            // Cache for 15 minutes as this init file contains a version and changes
+            .addInitJsonBehavior('/banner/*/init.json',jsonFilesBucket.getOrigin(), fifteenMinuteCache)
+            // The banner files can be cached forever as they will be busted by a version which is received out of the init.json
+            .addDefaultBehavior('/banner/*', jsonFilesBucket.getOrigin(), this.createOneYearCachePolicy())
+            .addConsentStorageBehavior("/api/v1/store-consent", consentFunction.getIngestUrl())
+            .addDefaultBehavior('/js/*', javascriptBucket.getOrigin(), fifteenMinuteCache)
+            .addDefaultBehavior('/images/*', javascriptBucket.getOrigin(), oneDayCachePolicy);
 
         new UploadBannerResource(this, 'UploadBannerResource', {
             bucket: javascriptBucket.getResource(),
@@ -87,13 +108,39 @@ export class CdnStack extends Stack {
         })
     }
 
-    private createCachePolicy(): CachePolicy {
+    private createFifteenMinutesCachePolicy(): CachePolicy {
         return new CachePolicy(this, "FifteenMinuteCache", {
             cachePolicyName: "FifteenMinuteCache",
             comment: "Cache responses for 15 minutes, bustable via ?v=",
             defaultTtl: Duration.minutes(15),
             minTtl: Duration.minutes(15),
             maxTtl: Duration.minutes(15),
+            cookieBehavior: CacheCookieBehavior.none(),
+            headerBehavior: CacheHeaderBehavior.none(),
+            queryStringBehavior: CacheQueryStringBehavior.allowList("v"),
+        });
+    }
+
+    private createOneDayCachePolicy(): CachePolicy {
+        return new CachePolicy(this, "OneDayCache", {
+            cachePolicyName: "OneDayCache",
+            comment: "Cache responses for 1 day, bustable via ?v=",
+            defaultTtl: Duration.days(1),
+            minTtl: Duration.days(1),
+            maxTtl: Duration.days(1),
+            cookieBehavior: CacheCookieBehavior.none(),
+            headerBehavior: CacheHeaderBehavior.none(),
+            queryStringBehavior: CacheQueryStringBehavior.allowList("v"),
+        });
+    }
+
+    private createOneYearCachePolicy(): CachePolicy {
+        return new CachePolicy(this, "OneYearCache", {
+            cachePolicyName: "OneYearCache",
+            comment: "Cache responses for 1 year, bustable via ?v=",
+            defaultTtl: Duration.days(365),
+            minTtl: Duration.days(365),
+            maxTtl: Duration.days(365),
             cookieBehavior: CacheCookieBehavior.none(),
             headerBehavior: CacheHeaderBehavior.none(),
             queryStringBehavior: CacheQueryStringBehavior.allowList("v"),

@@ -4,21 +4,13 @@ import { ConsentBannerStack } from '../lib/stacks/ConsentBannerStacks/consent-ba
 import { CdnStack } from '../lib/stacks/ConsentBannerStacks/cdn-stack';
 import * as dotenv from 'dotenv';
 import * as dotenvExpand from 'dotenv-expand';
+import {env} from "../lib/helpers";
 
 // .env laden
 const envResult = dotenv.config({
     path: '../.env',
 });
 dotenvExpand.expand(envResult);
-
-// Helper om env vars verplicht als string op te halen
-function env(name: string): string {
-    const value = process.env[name];
-    if (!value) {
-        throw new Error(`Missing required environment variable: ${name}`);
-    }
-    return value;
-}
 
 const app = new cdk.App();
 
@@ -29,18 +21,30 @@ const consentBannerStack = new ConsentBannerStack(app, 'ConsentBannerStack', {
             bucket: env('ATHENA_CONSENT_LOGS_RAW_BUCKET'),
             database: env('ATHENA_CONSENT_LOGS_DATABASE'),
             table: env('ATHENA_CONSENT_LOGS_TABLE'),
+            storagePathS3: env('ATHENA_CONSENT_LOGS_STORAGE_PATH_S3')
         },
         firehose: {
             streamName: env('FIREHOSE_CONSENT_LOGS_STREAM'),
+            streamInterval: parseInt(env('FIREHOSE_CONSENT_LOGS_STREAM_INTERVAL')),
+            streamSize: parseInt(env('FIREHOSE_CONSENT_LOGS_STREAM_SIZE'))
         },
     },
-    env: { region: env('AWS_REGION') },
+    env: {
+        region: env('AWS_REGION'),
+        account: env('AWS_ACCOUNT'),
+    },
 });
 
 const cloudfrontStack = new CdnStack(app, 'CloudfrontDistributionStack', {
+    app: {
+        url: env('APP_DOMAIN'),
+        cdnUrl: `${env('CLOUDFRONT_SUBDOMAIN')}.${env('APP_DOMAIN')}`
+    },
     services: {
         cloudfront: {
             certificateArn: env('CLOUDFRONT_CERTIFICATE_ARN'),
+            hostedZoneDomain: env('APP_DOMAIN'),
+            recordName: env('CLOUDFRONT_SUBDOMAIN')
         },
         firehose: {
             streamName: env('FIREHOSE_CONSENT_LOGS_STREAM'),
@@ -53,7 +57,10 @@ const cloudfrontStack = new CdnStack(app, 'CloudfrontDistributionStack', {
             javascriptBucketName: env('S3_BANNER_ASSETS_BUCKET'),
         },
     },
-    env: { region: env('AWS_REGION') },
+    env: {
+        region: env('AWS_REGION'),
+        account: env('AWS_ACCOUNT'),
+    },
 });
 
 consentBannerStack.addDependency(cloudfrontStack);

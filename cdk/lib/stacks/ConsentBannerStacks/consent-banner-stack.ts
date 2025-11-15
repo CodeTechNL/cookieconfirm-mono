@@ -4,17 +4,23 @@ import {AthenaDatabaseResource} from "../../constructs/ConsentLogs/AthenaDatabas
 import {StackProps } from "aws-cdk-lib";
 import {Bucket} from "aws-cdk-lib/aws-s3";
 import {DeliveryStreamResource} from "../../constructs/ConsentLogs/Firehose/DeliveryStreamResource";
+import {
+    AthenaDatabaseBucketProcessedResource
+} from "../../constructs/ConsentLogs/S3/AthenaDatabaseBucketProcessedResource";
 
 interface ConsentBannerStackProps extends StackProps {
     services: {
         firehose: {
             streamName: string
+            streamInterval: number,
+            streamSize: number,
         },
         athena: {
             bucket: string
             table: string
             database: string
             workGroup: string
+            storagePathS3: string
         }
     }
 }
@@ -28,6 +34,7 @@ export class ConsentBannerStack extends cdk.Stack {
         const firehoseConfig = props.services.firehose;
 
         const athena = new AthenaDatabaseResource(this, 'AthenaDatabaseResource', {
+            storagePathS3: athenaConfig.storagePathS3,
             account: this.account,
             workGroupName: athenaConfig.workGroup,
             bucketName: athenaConfig.bucket,
@@ -37,7 +44,14 @@ export class ConsentBannerStack extends cdk.Stack {
 
         this.bucket = athena.getBucket();
 
+        const processedAthenaLogsBucket = new AthenaDatabaseBucketProcessedResource(this, 'AthenaDatabaseBucketProcessedResource', {
+            bucketName: athenaConfig.bucket,
+        })
+        
         new DeliveryStreamResource(this, 'DeliveryStreamResource', {
+            streamInterval: firehoseConfig.streamInterval,
+            streamSize: firehoseConfig.streamSize,
+            storagePathS3: athenaConfig.storagePathS3,
             bucket: athena.getBucket(),
             streamName: firehoseConfig.streamName
         })

@@ -1,7 +1,8 @@
 import {Construct} from "constructs";
 import {Bucket, CfnBucket} from "aws-cdk-lib/aws-s3";
-import {CfnWorkGroup} from "aws-cdk-lib/aws-athena";
+import {CfnWorkGroup, } from "aws-cdk-lib/aws-athena";
 import {CfnDatabase, CfnTable} from "aws-cdk-lib/aws-glue";
+import {} from "aws-cdk-lib/aws-athena";
 import * as cdk from "aws-cdk-lib";
 
 type CfnTableProps = {
@@ -9,6 +10,7 @@ type CfnTableProps = {
     account: string
     databaseName: string,
     tableName: string
+    storagePathS3: string
 }
 
 export class CfnTableResource extends Construct {
@@ -18,13 +20,14 @@ export class CfnTableResource extends Construct {
     constructor(scope: Construct, id: string, props: CfnTableProps) {
         super(scope, id);
 
-        const {account, databaseName, tableName, bucket} = props;
+        const {account, databaseName, tableName, bucket, storagePathS3} = props;
+
 
         this.resource = new CfnTable(this, 'ConsentRequestsTable', {
             databaseName: databaseName,
             catalogId: account,
             tableInput: {
-                name: 'consent_logs',
+                name: tableName,
                 tableType: "EXTERNAL_TABLE",
                 parameters: {
                     classification: "json",
@@ -32,18 +35,14 @@ export class CfnTableResource extends Construct {
                     "projection.date.type": "date",
                     "projection.date.range": "2024-01-01,NOW",
                     "projection.date.format": "yyyy-MM-dd",
-
-                    "projection.website.type": "injected",
-
                     // Hive-style partitioning met key=value
-                    "storage.location.template": `s3://${bucket.bucketName}/requests/website=\${website}/date=\${date}/`,
+                    "storage.location.template": `s3://${bucket.bucketName}/${storagePathS3}/date=\${date}/`,
                 },
                 partitionKeys: [
-                    { name: "website", type: "string" },
                     { name: "date", type: "string" }
                 ],
                 storageDescriptor: {
-                    location: `s3://${bucket.bucketName}/requests/`,
+                    location: `s3://${bucket.bucketName}/${storagePathS3}/`,
                     inputFormat: "org.apache.hadoop.mapred.TextInputFormat",
                     outputFormat:
                         "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
@@ -55,6 +54,7 @@ export class CfnTableResource extends Construct {
                     },
                     columns: [
                         { name: "uuid", type: "string" },
+                        { name: "website", type: "string" },
                         { name: "ip_address", type: "string" },
                         { name: "country", type: "string" },
                         { name: "page_url", type: "string" },

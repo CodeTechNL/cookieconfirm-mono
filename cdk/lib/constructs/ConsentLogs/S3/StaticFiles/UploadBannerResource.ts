@@ -3,7 +3,7 @@ import * as cdk from "aws-cdk-lib";
 import {Distribution} from "aws-cdk-lib/aws-cloudfront";
 import {Bucket} from "aws-cdk-lib/aws-s3";
 import {BucketDeployment, CacheControl, Source} from "aws-cdk-lib/aws-s3-deployment";
-import {fromRoot} from "../../../../path-helpers";
+import {fromRoot} from "../../../../helpers";
 
 type UploadBannerResourceProps = {
     cloudfront: Distribution
