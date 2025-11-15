@@ -33,7 +33,7 @@ interface SharedStackProps extends StackProps {
     }
 }
 
-export class CdnStack extends Stack {
+export class FrontendBannerStack extends Stack {
     constructor(scope: Construct, id: string, props: SharedStackProps) {
         super(scope, id, props)
 

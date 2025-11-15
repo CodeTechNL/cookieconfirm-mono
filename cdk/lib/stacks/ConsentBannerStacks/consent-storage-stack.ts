@@ -16,7 +16,7 @@ interface ConsentBannerStackProps extends StackProps {
             streamSize: number,
         },
         athena: {
-            bucket: string
+            rawBucket: string
             table: string
             database: string
             workGroup: string
@@ -25,7 +25,7 @@ interface ConsentBannerStackProps extends StackProps {
     }
 }
 
-export class ConsentBannerStack extends cdk.Stack {
+export class ConsentStorageStack extends cdk.Stack {
     private readonly bucket: Bucket;
     constructor(scope: Construct, id: string, props: ConsentBannerStackProps) {
         super(scope, id, props)
@@ -37,17 +37,13 @@ export class ConsentBannerStack extends cdk.Stack {
             storagePathS3: athenaConfig.storagePathS3,
             account: this.account,
             workGroupName: athenaConfig.workGroup,
-            bucketName: athenaConfig.bucket,
+            bucketName: athenaConfig.rawBucket,
             databaseName: athenaConfig.database,
             tableName: athenaConfig.table
         })
 
         this.bucket = athena.getBucket();
 
-        const processedAthenaLogsBucket = new AthenaDatabaseBucketProcessedResource(this, 'AthenaDatabaseBucketProcessedResource', {
-            bucketName: athenaConfig.bucket,
-        })
-        
         new DeliveryStreamResource(this, 'DeliveryStreamResource', {
             streamInterval: firehoseConfig.streamInterval,
             streamSize: firehoseConfig.streamSize,
