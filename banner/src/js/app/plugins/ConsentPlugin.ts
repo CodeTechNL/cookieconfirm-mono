@@ -30,7 +30,7 @@ class ConsentPlugin extends AbstractPlugin{
       }
       
       console.log(payload);
-    fetch('https://4gugyupodxlfhzzsdtk3aygnya0ymspw.lambda-url.us-east-1.on.aws', {
+    fetch(`${import.meta.env.VITE_APP_URL}/api/v1/store-consent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

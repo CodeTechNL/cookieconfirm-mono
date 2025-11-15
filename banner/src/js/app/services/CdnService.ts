@@ -30,7 +30,7 @@ class CdnService {
 
     return {
       banner: data,
-      country: response.headers.get('X-Country') ?? null,
+      country: response.headers.get('X-Viewer-Country') ?? null,
     }
   }
 
