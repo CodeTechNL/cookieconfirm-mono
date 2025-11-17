@@ -11,6 +11,20 @@ dotenvExpand.expand(envResult);
 
 export default defineConfig({
   build: {
+    terserOptions: {
+      compress: {
+        defaults: true,
+        drop_console: true,
+        drop_debugger: true,
+        passes: 3,
+      },
+      format: {
+        comments: false,
+      },
+      ecma: 2020,
+      module: true,
+      toplevel: true,
+    },
     copyPublicDir: false,
     rollupOptions: {
       input: [
