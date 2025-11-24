@@ -17,8 +17,6 @@ export const handler = async (
     console.log('Firehose handler started');
     const requestData = getRequestData(event);
     const now = new Date();
-    const dt = now.toISOString().slice(0, 10);
-    const website = extractDomain(event.headers['referer']);
 
     const record = {
         uuid: requestData.id,
@@ -28,6 +26,7 @@ export const handler = async (
         page_url: requestData.path,
         user_agent: event.requestContext.http.userAgent,
         updated_at: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        website: requestData.domain,
         consent_method: requestData.consentMethod,
         accepted_marketing: !!requestData.marketing,
         accepted_analytics: !!requestData.analytics,
@@ -49,7 +48,7 @@ export const handler = async (
         Record: { Data: new TextEncoder().encode(line) }
     }));
 
-    return response(200, 'ok');
+    return response(200, JSON.stringify(record));
 };
 
 function response(status: number, body: string) {

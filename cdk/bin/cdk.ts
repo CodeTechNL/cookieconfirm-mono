@@ -5,6 +5,7 @@ import * as dotenvExpand from 'dotenv-expand';
 import {env} from "../lib/helpers";
 import {ConsentBannerStack} from "../lib/stacks/consent-banner-stack";
 import {CookieScannerStack} from "../lib/stacks/cookie-scanner-stack";
+import {PlatformStack} from "../lib/stacks/platform-stack";
 
 const envResult = dotenv.config({
     path: '../.env',
@@ -60,5 +61,8 @@ new CookieScannerStack(app, 'CookieScannerStack', {
         region: env('AWS_REGION'),
     }
 })
+
+new PlatformStack(app, 'PlatformStack', {})
+
 
 app.synth();

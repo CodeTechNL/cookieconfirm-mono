@@ -8,7 +8,7 @@
     "build-banner": "cd ./banner && npm run build --mode=production",
     "cdk": "cd ./cdk && cdk --profile=cookieconfirm",
     "update-repo": "git submodule update --remote",
-    "deploy-scanner": "cdk deploy CookieScannerStack",
+    "deploy-scanner": "cd ./cdk && cdk deploy CookieScannerStack",
     "deploy-banner": "npm run build-banner && npm run cdk deploy -- --all"
   }
 }

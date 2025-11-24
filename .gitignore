@@ -11,3 +11,5 @@ cdk/cdk.out
 **/node_modules
 
 banner/dist
+.env
+.DS_Store
