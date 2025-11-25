@@ -62,7 +62,11 @@ new CookieScannerStack(app, 'CookieScannerStack', {
     }
 })
 
-new PlatformStack(app, 'PlatformStack', {})
-
+new PlatformStack(app, 'PlatformStack', {
+    APP_ENV: 'staging',
+    env: {
+        region: 'eu-west-3'
+    }
+})
 
 app.synth();

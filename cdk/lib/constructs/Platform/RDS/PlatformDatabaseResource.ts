@@ -1,6 +1,6 @@
 import {Construct} from "constructs"
 import {ApiDestination, Authorization, Connection, HttpMethod, HttpParameter} from "aws-cdk-lib/aws-events";
-import {DatabaseInstance, DatabaseInstanceEngine, Endpoint, MysqlEngineVersion} from "aws-cdk-lib/aws-rds";
+import {Credentials, DatabaseInstance, DatabaseInstanceEngine, Endpoint, MysqlEngineVersion} from "aws-cdk-lib/aws-rds";
 import {
     IConnectable,
     InstanceClass,
@@ -11,6 +11,8 @@ import {
     SubnetType,
     Vpc
 } from "aws-cdk-lib/aws-ec2";
+import {SecretValue} from "aws-cdk-lib";
+import {StringParameter} from "aws-cdk-lib/aws-ssm";
 
 
 type PlatformDatabaseProps = {
@@ -18,6 +20,8 @@ type PlatformDatabaseProps = {
     isolatedSubnetName: string
     databaseName: string
     allowGroups: IConnectable[]
+    APP_ENV: string
+
 }
 
 export class PlatformDatabaseResource extends Construct {
@@ -26,8 +30,10 @@ export class PlatformDatabaseResource extends Construct {
     constructor(scope: Construct, id: string, props: PlatformDatabaseProps) {
         super(scope, id);
 
+        const {password, username} = this.getCredentials(props.APP_ENV);
+
         const {vpc, isolatedSubnetName, allowGroups} = props;
-        // RDS
+
         const databaseSecurityGroup = new SecurityGroup(this, 'database-SG', {
             vpc,
             description: 'SecurityGroup associated with the MySQL RDS Instance',
@@ -47,6 +53,10 @@ export class PlatformDatabaseResource extends Construct {
             maxAllocatedStorage: 250,
             multiAz: false,
             securityGroups: [databaseSecurityGroup],
+            credentials: Credentials.fromPassword(
+                username,                                // username
+                SecretValue.unsafePlainText(password), // password
+            ),
             vpc,
             vpcSubnets: {
                 subnetGroupName: isolatedSubnetName
@@ -60,5 +70,21 @@ export class PlatformDatabaseResource extends Construct {
 
     getDatabase(){
         return this.database;
+    }
+
+    private getCredentials(env:string) {
+        const password = StringParameter.fromStringParameterName(
+            this,
+            `${env}-DatabasePassword`,
+            `/cc/${env}/DB_PASSWORD`
+        ).stringValue
+
+        const username = StringParameter.fromStringParameterName(
+            this,
+            `${env}-DatabaseUsername`,
+            `/cc/${env}/DB_USERNAME`
+        ).stringValue
+
+        return {password, username}
     }
 }
