@@ -1,20 +1,9 @@
-import { DockerBuildSecret, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib/core';
-import { Effect, Policy, PolicyStatement, Role, ServicePrincipal, User } from 'aws-cdk-lib/aws-iam';
+import { RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib/core';
+import { Role, ServicePrincipal, User } from 'aws-cdk-lib/aws-iam';
 import { AuthorizationToken } from 'aws-cdk-lib/aws-ecr';
-import {
-    InterfaceVpcEndpointAwsService,
-    Port,
-    SecurityGroup,
-    SubnetType,
-} from 'aws-cdk-lib/aws-ec2';
+import { SecurityGroup,} from 'aws-cdk-lib/aws-ec2';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import {
-    Cluster,
-    ContainerImage,
-    Protocol as EcsProtocol,
-    LogDriver,
-    ContainerDependencyCondition, DeploymentControllerType,
-} from 'aws-cdk-lib/aws-ecs';
+import { Cluster, DeploymentControllerType } from 'aws-cdk-lib/aws-ecs';
 import { Construct } from 'constructs';
 import { PlatformDockerResource } from '../../constructs/Platform/ECR/PlatformDockerResource';
 import { ApplicationTargetGroupResource } from '../../constructs/Platform/ApplicationTargetGroupResource';
@@ -41,7 +30,6 @@ interface PlatformProps extends StackProps {
 }
 
 export class ServerSetupStack extends Stack {
-    private readonly applicationLoadBalancer: ApplicationLoadBalancerResource;
     constructor(scope: Construct, id: string, props: PlatformProps) {
         super(scope, id, props);
 
@@ -57,20 +45,9 @@ export class ServerSetupStack extends Stack {
             bucketName: "platform-storage-stack-bucket-cc"
         })
 
-        // VPC
-        const SUBNET_APPLICATION = {
-            name: 'Application',
-            subnetType: SubnetType.PUBLIC,
-        };
+        const vpcResource = new VpcResource(this, 'my-vpc');
 
-        const SUBNET_ISOLATED = {
-            name: 'RDS-Redis',
-            subnetType: SubnetType.PRIVATE_ISOLATED,
-        };
-
-        const vpc = new VpcResource(this, 'my-vpc', {
-            subnetConfiguration: [SUBNET_APPLICATION, SUBNET_ISOLATED],
-        });
+        const vpc = vpcResource.getVpc();
 
         const user = new User(this, 'deployment-user', {});
         AuthorizationToken.grantRead(user);
@@ -84,47 +61,9 @@ export class ServerSetupStack extends Stack {
             queueName: 'scheduler-job-queue'
         });
 
-        const queueCluster = new Cluster(this, 'queue-cluster', {
-            clusterName: 'background-tasks',
-            vpc,
-        });
-
-        // VPC - Private Links
-        const ecr = vpc.addInterfaceEndpoint('ecr-gateway', {
-            service: InterfaceVpcEndpointAwsService.ECR,
-        });
-
-        vpc.addInterfaceEndpoint('ecr-docker-gateway', {
-            service: InterfaceVpcEndpointAwsService.ECR_DOCKER,
-        });
-
-        const ecs = vpc.addInterfaceEndpoint('ecs-gateway', {
-            service: InterfaceVpcEndpointAwsService.ECS,
-        });
-
-        const ecsAgent = vpc.addInterfaceEndpoint('ecs-agent-gateway', {
-            service: InterfaceVpcEndpointAwsService.ECS_AGENT,
-        });
-
-        const ecsTelemetry = vpc.addInterfaceEndpoint('ecs-telemetry-gateway', {
-            service: InterfaceVpcEndpointAwsService.ECS_TELEMETRY,
-        });
-
-        const sqsEndpoint = vpc.addInterfaceEndpoint('sqs-gateway', {
-            service: InterfaceVpcEndpointAwsService.SQS,
-        });
-
-        const sm = vpc.addInterfaceEndpoint('secrets-manager', {
-            service: InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-        });
-
-        const cw = vpc.addInterfaceEndpoint('cloudwatch', {
-            service: InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
-        });
-
         const alb = new ApplicationLoadBalancerResource(this, 'application-ALB', {
             vpc,
-            subnetName: SUBNET_APPLICATION.name,
+            subnetName: vpcResource.SUBNET_APPLICATION.name,
         });
 
         const loadBalancerSecurityGroup = new SecurityGroup(this, 'load-balancer-SG', {
@@ -182,7 +121,7 @@ export class ServerSetupStack extends Stack {
         const applicationSecurityGroup = new SecurityGroupResource(this, 'application-SG', {
             vpc,
             description: 'SecurityGroup into which application ECS tasks will be deployed',
-            connections: [ecr, ecs, ecsAgent, ecsTelemetry, sm, cw],
+            connections: vpcResource.getApplicationVpcEndpoints(),
             loadBalancerSecurityGroup,
         });
 
@@ -195,7 +134,7 @@ export class ServerSetupStack extends Stack {
         const db = new PlatformDatabaseResource(this, 'Platform-DatabaseResource', {
             allowGroups: [applicationSecurityGroup.getSecurityGroup(), backgroundTasksSecurityGroup],
             databaseName: 'cookie-confirm-sample',
-            isolatedSubnetName: SUBNET_ISOLATED.name,
+            isolatedSubnetName: vpcResource.SUBNET_ISOLATED.name,
             vpc,
             APP_ENV: props.APP_ENV,
         });
@@ -222,48 +161,8 @@ export class ServerSetupStack extends Stack {
             description: 'SQS Queue URL'
         })
 
-        /**
-         * INIT CONTAINER: draait php artisan migrate --force
-         * - gebruikt deploy-image
-         * - non-essential
-         * - app-container hangt ervan af met condition SUCCESS
-         */
-        const initMigrateContainer = applicationServiceDefinition.addContainer('init-migrate', {
-            essential: false, // mag stoppen zonder de hele task te beëindigen
-            image: ContainerImage.fromDockerImageAsset(images.init),
-            environment: environment.getEnvironmentVars(),
-            logging: LogDriver.awsLogs({
-                logGroup: applicationLogGroup,
-                streamPrefix: 'init-migrate',
-            }),
-            entryPoint: ['sh', '-c'],
-            command: ['php artisan migrate --force'],
-        });
-
-        // APPLICATION CONTAINER
-        const applicationContainer = applicationServiceDefinition.addContainer('app-container', {
-            cpu: 256,
-            environment: environment.getEnvironmentVars(),
-            essential: true,
-            image: ContainerImage.fromDockerImageAsset(images.application),
-            logging: LogDriver.awsLogs({
-                logGroup: applicationLogGroup,
-                streamPrefix: new Date().toLocaleDateString('nl-NL'),
-            }),
-            memoryLimitMiB: 512,
-        });
-
-        // App-container pas starten NA succesvolle init-migrate
-        applicationContainer.addContainerDependencies({
-            container: initMigrateContainer,
-            condition: ContainerDependencyCondition.SUCCESS,
-        });
-
-        applicationContainer.addPortMappings({
-            containerPort: 80,
-            hostPort: 80,
-            protocol: EcsProtocol.TCP,
-        });
+        const initMigrateContainer = applicationServiceDefinition.addInitContainer(images.init, environment.getEnvironmentVars(), applicationLogGroup);
+        applicationServiceDefinition.addApplicationContainer(images.application, environment.getEnvironmentVars(), applicationLogGroup, initMigrateContainer);
 
         new FargateContainerResource(this, 'application-fargate-service', {
             applicationLogGroup: applicationLogGroup,
@@ -271,15 +170,11 @@ export class ServerSetupStack extends Stack {
             image: images.application,
             cluster,
             securityGroup: applicationSecurityGroup.getSecurityGroup(),
-            subnetApplicationName: SUBNET_APPLICATION.name,
-            taskDefinition: applicationServiceDefinition,
+            subnetApplicationName: vpcResource.SUBNET_APPLICATION.name,
+            taskDefinition: applicationServiceDefinition.getTasDefinition(),
         });
 
-        // SQS Permissions
-        sqsEndpoint.connections.allowFrom(backgroundTasksSecurityGroup, Port.tcp(443));
-        sqsEndpoint.connections.allowFrom(applicationSecurityGroup.getSecurityGroup(), Port.tcp(443));
-
-        this.applicationLoadBalancer = alb;
+        vpcResource.addHttpsConnection(backgroundTasksSecurityGroup, applicationSecurityGroup.getSecurityGroup());
 
         const queueWorkerLogGroup = new LogGroup(this, 'queue-worker-log-group', {
             logGroupName: 'queue-worker',
@@ -287,24 +182,23 @@ export class ServerSetupStack extends Stack {
             retention: 7
         });
 
-        schedulerJobQueue.grantSendMessages(applicationServiceDefinition.obtainExecutionRole())
+        schedulerJobQueue.grantSendMessages(applicationServiceDefinition.getTasDefinition().obtainExecutionRole())
 
         new QueueResource(this, 'queued-jobs', {
-            queueCluster: queueCluster,
+            vpcResource,
             deploymentController: DeploymentControllerType.ECS,
             environment: environment.getEnvironmentVars(),
             image: images.queue,
             queue: schedulerJobQueue,
             queueLogGroup: queueWorkerLogGroup,
             securityGroup: applicationSecurityGroup.getSecurityGroup(),
-            subnetGroupName: SUBNET_APPLICATION.name,
             resources: {
                 db: db.getDatabase()
             }
         })
 
         new DomainResource(this, 'DomainSetupResource', {
-            loadBalancer: this.applicationLoadBalancer,
+            loadBalancer: alb,
             stage: stage
         })
     }
@@ -317,9 +211,5 @@ export class ServerSetupStack extends Stack {
                 AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
                 AWS_REGION: process.env.AWS_REGION,
             };
-    }
-
-    getApplicationLoadBalancer(){
-        return this.applicationLoadBalancer;
     }
 }

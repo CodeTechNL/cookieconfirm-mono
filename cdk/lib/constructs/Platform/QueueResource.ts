@@ -14,14 +14,14 @@ import {LogGroup} from "aws-cdk-lib/aws-logs";
 import {Queue} from "aws-cdk-lib/aws-sqs";
 import {QueueProcessingFargateService} from "aws-cdk-lib/aws-ecs-patterns";
 import {DatabaseInstance} from "aws-cdk-lib/aws-rds";
+import {VpcResource} from "./VpcResource";
 
 type QueueProps = {
-    queueCluster: Cluster
+    vpcResource: VpcResource;
     deploymentController: DeploymentControllerType,
     environment: Record<string, string>
     queueLogGroup: LogGroup
     queue: Queue
-    subnetGroupName: string
     image: DockerImageAsset
     securityGroup: SecurityGroup,
     resources: {
@@ -32,7 +32,12 @@ type QueueProps = {
 export class QueueResource extends QueueProcessingFargateService {
     constructor(scope: Construct, id: string, props: QueueProps) {
 
-        const {environment, queueCluster, image, queueLogGroup, queue, securityGroup, subnetGroupName, resources} = props;
+        const {vpcResource, environment, image, queueLogGroup, queue, securityGroup, resources} = props;
+
+        const queueCluster = new Cluster(scope, 'queue-cluster', {
+            clusterName: 'background-tasks',
+            vpc: vpcResource.getVpc(),
+        });
 
         const sqsPolicy = new Policy(scope, 'fargate-task-sqs-policy', {
             statements: [
@@ -70,7 +75,7 @@ export class QueueResource extends QueueProcessingFargateService {
             platformVersion: FargatePlatformVersion.LATEST,
             securityGroups: [securityGroup],
             taskSubnets: {
-                subnetGroupName: subnetGroupName
+                subnetGroupName: vpcResource.SUBNET_APPLICATION.name
             },
             scalingSteps: [
                 { lower: 0, upper: 1, change: -1 },
