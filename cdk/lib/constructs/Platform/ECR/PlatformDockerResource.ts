@@ -4,7 +4,7 @@ import {ApplicationLoadBalancer} from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import {DockerImageAsset, Platform} from "aws-cdk-lib/aws-ecr-assets";
 import {fromRoot} from "../../../helpers";
 
-type TaskTypes = 'application' | 'queue' | 'scheduler';
+type TaskTypes = 'application' | 'queue' | 'scheduler' | 'init';
 
 type PlatformDockerProps = {
     buildArgs: Record<string, string>
