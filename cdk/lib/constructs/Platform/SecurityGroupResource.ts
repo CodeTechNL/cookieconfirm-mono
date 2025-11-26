@@ -1,21 +1,9 @@
 import {Construct} from "constructs"
-import { Compatibility, CpuArchitecture, OperatingSystemFamily, TaskDefinition} from 'aws-cdk-lib/aws-ecs';
-import {Role} from "aws-cdk-lib/aws-iam";
-import {
-    Connections,
-    GatewayVpcEndpointAwsService, IConnectable,
-    Port,
-    SecurityGroup,
-    SubnetConfiguration,
-    SubnetType,
-    Vpc
-} from "aws-cdk-lib/aws-ec2";
-import {Connection} from "aws-cdk-lib/aws-events";
+import { IConnectable, Port, SecurityGroup} from "aws-cdk-lib/aws-ec2";
+import {VpcResource} from "./VpcResource";
 
 type SecurityGroupProps = {
-    vpc: Vpc,
-    connections: IConnectable[]
-    description: string
+    vpcResource: VpcResource
     loadBalancerSecurityGroup?: SecurityGroup
 }
 
@@ -24,11 +12,11 @@ export class SecurityGroupResource extends Construct {
     constructor(scope: Construct, id: string, props: SecurityGroupProps) {
         super(scope, id);
 
-        const {vpc, connections, description, loadBalancerSecurityGroup} = props;
+        const {vpcResource, loadBalancerSecurityGroup} = props;
 
         this.securityGroup = new SecurityGroup(this, id, {
-            vpc,
-            description,
+            vpc: vpcResource.getVpc(),
+            description: 'SecurityGroup into which application ECS tasks will be deployed',
             allowAllOutbound: true
         });
 
@@ -36,7 +24,7 @@ export class SecurityGroupResource extends Construct {
             this.getSecurityGroup().connections.allowFrom(loadBalancerSecurityGroup, Port.allTcp(), 'Load Balancer ingress All TCP');
         }
 
-        connections.forEach((connection: IConnectable) => {
+        vpcResource.getApplicationVpcEndpoints().forEach((connection: IConnectable) => {
             connection.connections.allowFrom(this.getSecurityGroup(), Port.tcp(443));
         })
     }

@@ -7,15 +7,14 @@ import {
     InstanceType,
     Port,
     SecurityGroup,
-    Vpc
 } from "aws-cdk-lib/aws-ec2";
 import {SecretValue} from "aws-cdk-lib";
 import {StringParameter} from "aws-cdk-lib/aws-ssm";
+import {VpcResource} from "../VpcResource";
 
 
 type PlatformDatabaseProps = {
-    vpc: Vpc
-    isolatedSubnetName: string
+    vpcResource: VpcResource;
     databaseName: string
     allowGroups: IConnectable[]
     APP_ENV: string
@@ -30,10 +29,10 @@ export class PlatformDatabaseResource extends Construct {
 
         const {password, username} = this.getCredentials(props.APP_ENV);
 
-        const {vpc, isolatedSubnetName, allowGroups} = props;
+        const {allowGroups, vpcResource} = props;
 
         const databaseSecurityGroup = new SecurityGroup(this, 'database-SG', {
-            vpc,
+            vpc: vpcResource.getVpc(),
             description: 'SecurityGroup associated with the MySQL RDS Instance',
             allowAllOutbound: false
         });
@@ -52,12 +51,12 @@ export class PlatformDatabaseResource extends Construct {
             multiAz: false,
             securityGroups: [databaseSecurityGroup],
             credentials: Credentials.fromPassword(
-                username,                                // username
-                SecretValue.unsafePlainText(password), // password
+                username,
+                SecretValue.unsafePlainText(password),
             ),
-            vpc,
+            vpc: vpcResource.getVpc(),
             vpcSubnets: {
-                subnetGroupName: isolatedSubnetName
+                subnetGroupName: vpcResource.SUBNET_ISOLATED.name
             }
         });
 

@@ -35,7 +35,7 @@ export class ServerSetupStack extends Stack {
 
         const environment = props.environmentVariables;
 
-        const {stage} = props;
+        const {stage, APP_ENV} = props;
 
         const assetsStorageBucket = new PlatformAssetsResource(this, 'PlatformAssetsResource', {
             bucketName: 'platform-assets-stack-bucket',
@@ -47,9 +47,10 @@ export class ServerSetupStack extends Stack {
 
         const vpcResource = new VpcResource(this, 'my-vpc');
 
-        const vpc = vpcResource.getVpc();
+        // const vpc = vpcResource.getVpc();
 
         const user = new User(this, 'deployment-user', {});
+
         AuthorizationToken.grantRead(user);
 
         const images = new PlatformDockerResource(this, 'applicationImage', {
@@ -57,17 +58,16 @@ export class ServerSetupStack extends Stack {
         }).getImages();
 
         // SQS and QueueProcessingService
-        const schedulerJobQueue = new Queue(this, 'job-queue', {
+        const jobQueue = new Queue(this, 'job-queue', {
             queueName: 'scheduler-job-queue'
         });
 
         const alb = new ApplicationLoadBalancerResource(this, 'application-ALB', {
-            vpc,
-            subnetName: vpcResource.SUBNET_APPLICATION.name,
+            vpcResource,
         });
 
         const loadBalancerSecurityGroup = new SecurityGroup(this, 'load-balancer-SG', {
-            vpc,
+            vpc: vpcResource.getVpc(),
             allowAllOutbound: true,
         });
 
@@ -79,7 +79,7 @@ export class ServerSetupStack extends Stack {
         });
 
         const targetGroupHttp = new ApplicationTargetGroupResource(this, 'alb-target-group', {
-            vpc: vpc,
+            vpc: vpcResource.getVpc(),
         });
 
         listener.addTargetGroups('alb-listener-target-group', {
@@ -89,7 +89,7 @@ export class ServerSetupStack extends Stack {
         // Fargate Service Things
         const cluster = new Cluster(this, 'application-cluster', {
             clusterName: 'application',
-            vpc,
+            vpc: vpcResource.getVpc(),
         });
 
         // LOG GROUPS
@@ -110,38 +110,32 @@ export class ServerSetupStack extends Stack {
         assetsStorageBucket.getBucket().grantReadWrite(taskRole);
         applicationStorageBucket.grantReadWrite(taskRole);
 
-        const applicationServiceDefinition = new TaskDefinitionResource(
-            this,
-            'application-fargate-service-definition',
-            {
+        const applicationServiceDefinition = new TaskDefinitionResource(this, 'application-fargate-service-definition', {
                 taskRole: taskRole,
             },
         );
 
         const applicationSecurityGroup = new SecurityGroupResource(this, 'application-SG', {
-            vpc,
-            description: 'SecurityGroup into which application ECS tasks will be deployed',
-            connections: vpcResource.getApplicationVpcEndpoints(),
+            vpcResource,
             loadBalancerSecurityGroup,
         });
 
-        const backgroundTasksSecurityGroup = new SecurityGroup(this, 'background-task-SG', {
-            vpc,
+        const queueTasksSecurityGroup = new SecurityGroup(this, 'background-task-SG', {
+            vpc: vpcResource.getVpc(),
             description: 'SecurityGroup into which scheduler ECS tasks will be deployed',
             allowAllOutbound: true,
         });
 
         const db = new PlatformDatabaseResource(this, 'Platform-DatabaseResource', {
-            allowGroups: [applicationSecurityGroup.getSecurityGroup(), backgroundTasksSecurityGroup],
+            allowGroups: [applicationSecurityGroup.getSecurityGroup(), queueTasksSecurityGroup],
             databaseName: 'cookie-confirm-sample',
-            isolatedSubnetName: vpcResource.SUBNET_ISOLATED.name,
-            vpc,
-            APP_ENV: props.APP_ENV,
+            vpcResource,
+            APP_ENV,
         });
 
         const redisResource = new RedisCacheClusterResource(this, 'redis-cluster', {
-            allowConnections: [applicationSecurityGroup.getSecurityGroup(), backgroundTasksSecurityGroup],
-            vpc,
+            allowConnections: [applicationSecurityGroup.getSecurityGroup(), queueTasksSecurityGroup],
+            vpc: vpcResource.getVpc(),
         });
 
         const redis = redisResource.getRedis();
@@ -154,10 +148,10 @@ export class ServerSetupStack extends Stack {
             .append('REDIS_HOST', redis.attrRedisEndpointAddress)
             .append('REDIS_PORT', `${redis.port}`)
             .append('SQS_PREFIX', `https://sqs.${props!.env!.region}.amazonaws.com/${this.account}`)
-            .append('SQS_QUEUE', schedulerJobQueue.queueName);
+            .append('SQS_QUEUE', jobQueue.queueName);
 
         new CfnOutput(this, 'scheduler-job-queue-output', {
-            value: schedulerJobQueue.queueUrl,
+            value: jobQueue.queueUrl,
             description: 'SQS Queue URL'
         })
 
@@ -174,7 +168,7 @@ export class ServerSetupStack extends Stack {
             taskDefinition: applicationServiceDefinition.getTasDefinition(),
         });
 
-        vpcResource.addHttpsConnection(backgroundTasksSecurityGroup, applicationSecurityGroup.getSecurityGroup());
+        vpcResource.addHttpsConnection(queueTasksSecurityGroup, applicationSecurityGroup.getSecurityGroup());
 
         const queueWorkerLogGroup = new LogGroup(this, 'queue-worker-log-group', {
             logGroupName: 'queue-worker',
@@ -182,14 +176,14 @@ export class ServerSetupStack extends Stack {
             retention: 7
         });
 
-        schedulerJobQueue.grantSendMessages(applicationServiceDefinition.getTasDefinition().obtainExecutionRole())
+        jobQueue.grantSendMessages(applicationServiceDefinition.getTasDefinition().obtainExecutionRole())
 
         new QueueResource(this, 'queued-jobs', {
             vpcResource,
             deploymentController: DeploymentControllerType.ECS,
             environment: environment.getEnvironmentVars(),
             image: images.queue,
-            queue: schedulerJobQueue,
+            queue: jobQueue,
             queueLogGroup: queueWorkerLogGroup,
             securityGroup: applicationSecurityGroup.getSecurityGroup(),
             resources: {
