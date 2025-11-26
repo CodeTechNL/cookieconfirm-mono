@@ -1,28 +1,34 @@
-import {Construct} from "constructs"
-import {SecurityGroup, Vpc} from "aws-cdk-lib/aws-ec2";
-import {ApplicationLoadBalancer} from "aws-cdk-lib/aws-elasticloadbalancingv2";
-import {DockerImageAsset, Platform} from "aws-cdk-lib/aws-ecr-assets";
-import {fromRoot} from "../../../helpers";
-
-type TaskTypes = 'application' | 'queue' | 'scheduler' | 'init';
+import { Construct } from 'constructs';
+import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
+import { fromRoot } from '../../../helpers';
 
 type PlatformDockerProps = {
-    buildArgs: Record<string, string>
-    taskType: TaskTypes
-}
+    buildArgs: Record<string, string>;
+};
 
-export class PlatformDockerResource extends DockerImageAsset {
+type TaskType = 'application' | 'queue' | 'init';
+
+export class PlatformDockerResource extends Construct {
+    public readonly images: Record<TaskType, DockerImageAsset>;
+
     constructor(scope: Construct, id: string, props: PlatformDockerProps) {
+        super(scope, id);
 
-        const {buildArgs, taskType} = props;
-        
-        const baseProps = {
-            directory: fromRoot('platform'),
-            file: `./docker/${taskType}/Dockerfile`,
-            buildArgs: buildArgs,
-            platform: Platform.LINUX_ARM64,
-        };
+        const { buildArgs } = props;
 
-        super(scope, id, baseProps);
+        this.images = {} as Record<TaskType, DockerImageAsset>;
+
+        (['application', 'queue', 'init'] as const).forEach((taskType) => {
+            this.images[taskType] = new DockerImageAsset(this, `${taskType}Image`, {
+                directory: fromRoot('platform'),
+                file: `./docker/${taskType}/Dockerfile`,
+                buildArgs,
+                platform: Platform.LINUX_ARM64,
+            });
+        });
+    }
+
+    getImages(){
+        return this.images;
     }
 }

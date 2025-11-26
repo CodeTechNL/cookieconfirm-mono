@@ -1,10 +1,6 @@
 import {Construct} from "constructs"
-import {SecurityGroup, Vpc} from "aws-cdk-lib/aws-ec2";
-import {
-    ApplicationLoadBalancer,
-    ApplicationProtocol,
-    ApplicationTargetGroup, Protocol, TargetType
-} from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import {Vpc} from "aws-cdk-lib/aws-ec2";
+import {ApplicationProtocol, ApplicationTargetGroup, Protocol, TargetType} from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import {Duration} from "aws-cdk-lib/core";
 
 

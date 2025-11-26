@@ -1,0 +1,61 @@
+export interface EnvironmentVariablesInterface {
+    [key: string]: string;
+    APP_KEY: string
+    APP_ENV: string
+    APP_URL: string
+    DB_PASSWORD: string
+    DB_USERNAME: string
+    ASSET_URL: string
+    FILAMENT_FILESYSTEM_DISK: string
+    FILESYSTEM_DISK: string
+    BUGSNAG_API_KEY: string
+    MAIL_FROM_ADDRESS: string
+    MAILGUN_DOMAIN: string
+    MAILGUN_SECRET: string
+    MAILGUN_ENDPOINT: string
+    PHP_CLI_SERVER_WORKERS: string
+    BCRYPT_ROUNDS: string
+    BROADCAST_CONNECTION: string
+    MEMCACHED_HOST: string
+    MEILISEARCH_HOST: string
+    MEILISEARCH_KEY: string
+    APP_COMPANY_NAME: string
+    NIGHTWATCH_TOKEN: string
+    AWS_CDN_URL: string
+    NIGHTWATCH_REQUEST_SAMPLE_RATE: string
+    NIGHTWATCH_COMMAND_SAMPLE_RATE: string
+    MAILGUN_WEBHOOK_SIGNING_KEY: string
+    CHAT_GPT_API_KEY: string
+    SLACK_ALERT_WEBHOOK: string
+    PADDLE_CLIENT_SIDE_TOKEN: string
+    PADDLE_API_KEY: string
+    PADDLE_ENVIRONMENT: string
+    PADDLE_PRODUCT_ID: string
+    VITE_APP_NAME: string
+    VITE_API_ENDPOINT: string
+    VITE_BANNER_ASSETS_URL: string
+    PADDLE_WEBHOOK_SECRET: string
+    LAMBDA_WEBHOOKS_SECRET: string
+    AWS_LAMBDA_COOKIE_SCANNER_URL: string
+    AWS_LAMBDA_WEBSITE_SCRAPER_QUEUE: string
+    SETTINGS_CACHE_ENABLED: string
+    TURNSTILE_SITE_KEY: string
+    TURNSTILE_SECRET_KEY: string
+    REDIS_PASSWORD: string
+    DB_DATABASE: string
+    DB_CONNECTION: string
+    QUEUE_CONNECTION: string
+    APP_SUBDOMAIN: string
+    APP_MAIN_DOMAIN: string
+
+    // Dynamic vars
+    DB_HOST: string;
+    DB_READ_HOST: string;
+    DB_WRITE_HOST: string;
+    DB_PORT: string;
+    AWS_BUCKET: string;
+    REDIS_HOST: string;
+    REDIS_PORT: string;
+    SQS_PREFIX: string;
+    SQS_QUEUE: string;
+}

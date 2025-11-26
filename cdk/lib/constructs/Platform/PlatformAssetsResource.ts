@@ -4,8 +4,8 @@ import {BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership} from "aws-
 import { AllowedMethods, CachePolicy, Distribution, PriceClass, SecurityPolicyProtocol, ViewerProtocolPolicy } from "aws-cdk-lib/aws-cloudfront";
 import {S3BucketOrigin} from "aws-cdk-lib/aws-cloudfront-origins";
 
-interface PlatformAssetsStackProps extends StackProps {
-
+interface PlatformAssetsProps extends StackProps {
+    bucketName: string
 }
 
 /**
@@ -15,14 +15,14 @@ interface PlatformAssetsStackProps extends StackProps {
  * - Event Connection
  * - Event API Destination
  */
-export class PlatformAssetsStack extends Stack {
+export class PlatformAssetsResource extends Construct {
     private readonly bucket: Bucket;
 
-    constructor(scope: Construct, id: string, props: PlatformAssetsStackProps) {
-        super(scope, id, props)
+    constructor(scope: Construct, id: string, props: PlatformAssetsProps) {
+        super(scope, id)
 
         this.bucket = new Bucket(this, 'CookieConfirmAssetsBucket', {
-            bucketName: 'platform-assets-stack-bucket',
+            bucketName: props.bucketName,
             blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
             encryption: BucketEncryption.S3_MANAGED,
             enforceSSL: true,

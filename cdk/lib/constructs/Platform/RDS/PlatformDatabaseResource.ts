@@ -1,5 +1,4 @@
 import {Construct} from "constructs"
-import {ApiDestination, Authorization, Connection, HttpMethod, HttpParameter} from "aws-cdk-lib/aws-events";
 import {Credentials, DatabaseInstance, DatabaseInstanceEngine, Endpoint, MysqlEngineVersion} from "aws-cdk-lib/aws-rds";
 import {
     IConnectable,
@@ -8,7 +7,6 @@ import {
     InstanceType,
     Port,
     SecurityGroup,
-    SubnetType,
     Vpc
 } from "aws-cdk-lib/aws-ec2";
 import {SecretValue} from "aws-cdk-lib";

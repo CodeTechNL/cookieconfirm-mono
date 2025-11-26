@@ -1,13 +1,12 @@
 import {Stack, StackProps, Environment} from "aws-cdk-lib"
 import {Construct} from "constructs"
 import {ServerSetupStack} from "./PlatformStack/server-setup-stack";
-import {PlatformAssetsStack} from "./PlatformStack/platform-assets-stack";
-import {DomainSetupStack} from "./PlatformStack/domain-setup-stack";
+import {FoundationStack} from "./PlatformStack/foundation-stack";
+import {env} from "../helpers";
 
 interface PlatformAssetsStackProps extends StackProps {
-    domain: string
-    subdomain: string
     env: Environment
+    APP_ENV: string
 }
 
 /**
@@ -21,26 +20,20 @@ export class PlatformStack extends Stack {
     constructor(scope: Construct, id: string, props: PlatformAssetsStackProps) {
         super(scope, id, props)
 
-        const {domain, subdomain, env} = props;
+        const {env, APP_ENV} = props;
 
-        const platformAssetsStack = new PlatformAssetsStack(scope, 'PlatformAssetsStack', {
+        const foundationStack = new FoundationStack(scope, 'FoundationStack', {
             env,
-        });
+            APP_ENV
+        })
 
         const serverSetupStack = new ServerSetupStack(scope, 'ServerSetupStack', {
-            APP_ENV: 'staging',
-            bucket: platformAssetsStack.getBucket(),
-            env
-        })
-
-        const domainSetupStack = new DomainSetupStack(scope, 'DomainSetupStack', {
+            stage: 'staging',
+            environmentVariables: foundationStack.getEnvironmentResource(),
             env,
-            loadBalancer: serverSetupStack.getApplicationLoadBalancer(),
-            domain,
-            subdomain
+            APP_ENV
         })
 
-        serverSetupStack.addDependency(platformAssetsStack)
-        domainSetupStack.addDependency(serverSetupStack);
+        serverSetupStack.addDependency(foundationStack);
     }
 }

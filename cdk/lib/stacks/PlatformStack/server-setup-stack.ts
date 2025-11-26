@@ -1,72 +1,61 @@
 import { DockerBuildSecret, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib/core';
 import { Effect, Policy, PolicyStatement, Role, ServicePrincipal, User } from 'aws-cdk-lib/aws-iam';
 import { AuthorizationToken } from 'aws-cdk-lib/aws-ecr';
-import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import {
-    GatewayVpcEndpointAwsService,
-    InstanceClass,
-    InstanceSize,
-    InstanceType,
     InterfaceVpcEndpointAwsService,
     Port,
     SecurityGroup,
     SubnetType,
-    Vpc,
 } from 'aws-cdk-lib/aws-ec2';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import {
     Cluster,
-    Compatibility,
     ContainerImage,
-    DeploymentControllerType,
-    FargatePlatformVersion,
-    FargateService,
-    TaskDefinition,
     Protocol as EcsProtocol,
     LogDriver,
-    OperatingSystemFamily,
-    CpuArchitecture,
-    Secret,
-    ContainerDependencyCondition,
+    ContainerDependencyCondition, DeploymentControllerType,
 } from 'aws-cdk-lib/aws-ecs';
-import {
-    ApplicationLoadBalancer,
-    ApplicationProtocol,
-    ApplicationTargetGroup,
-    Protocol,
-    TargetType,
-} from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { Accelerator, HealthCheckProtocol } from 'aws-cdk-lib/aws-globalaccelerator';
-import { ApplicationLoadBalancerEndpoint } from 'aws-cdk-lib/aws-globalaccelerator-endpoints';
 import { Construct } from 'constructs';
-import { fromRoot } from '../../helpers';
-import { DatabaseInstance, DatabaseInstanceEngine, MysqlEngineVersion } from 'aws-cdk-lib/aws-rds';
-import { CfnCacheCluster, CfnSubnetGroup } from 'aws-cdk-lib/aws-elasticache';
 import { PlatformDockerResource } from '../../constructs/Platform/ECR/PlatformDockerResource';
 import { ApplicationTargetGroupResource } from '../../constructs/Platform/ApplicationTargetGroupResource';
 import { TaskDefinitionResource } from '../../constructs/Platform/TaskDefinitionResource';
 import { ApplicationLoadBalancerResource } from '../../constructs/Platform/ApplicationLoadBalancerResource';
 import { VpcResource } from '../../constructs/Platform/VpcResource';
 import { FargateContainerResource } from '../../constructs/Platform/FargateContainerResource';
-import { QueueResource } from '../../constructs/Platform/QueueResource';
-import { QueueProcessingFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
-import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { RedisCacheClusterResource } from '../../constructs/Platform/RedisCacheClusterResource';
 import { PlatformDatabaseResource } from '../../constructs/Platform/RDS/PlatformDatabaseResource';
 import { SecurityGroupResource } from '../../constructs/Platform/SecurityGroupResource';
-import {Bucket} from "aws-cdk-lib/aws-s3";
 import {CfnOutput} from "aws-cdk-lib";
+import {DomainResource} from "../../constructs/Platform/DomainSetupResource";
+import {PlatformAssetsResource} from "../../constructs/Platform/PlatformAssetsResource";
+import {PlatformStorageResource} from "../../constructs/Platform/S3/PlatformStorageResource";
+import {QueueResource} from "../../constructs/Platform/QueueResource";
+import {Queue} from "aws-cdk-lib/aws-sqs";
+import {EnvironmentResource} from "../../constructs/Platform/EnvironmentResource";
+import {ApplicationType} from "../../types/ApplicationType";
 
 interface PlatformProps extends StackProps {
     APP_ENV: string;
-    bucket: Bucket
+    stage: ApplicationType
+    environmentVariables: EnvironmentResource
 }
 
 export class ServerSetupStack extends Stack {
-    private applicationLoadBalancer: ApplicationLoadBalancerResource;
+    private readonly applicationLoadBalancer: ApplicationLoadBalancerResource;
     constructor(scope: Construct, id: string, props: PlatformProps) {
         super(scope, id, props);
+
+        const environment = props.environmentVariables;
+
+        const {stage} = props;
+
+        const assetsStorageBucket = new PlatformAssetsResource(this, 'PlatformAssetsResource', {
+            bucketName: 'platform-assets-stack-bucket',
+        });
+
+        const applicationStorageBucket = new PlatformStorageResource(this, 'PlatformApplicationStorageResource', {
+            bucketName: "platform-storage-stack-bucket-cc"
+        })
 
         // VPC
         const SUBNET_APPLICATION = {
@@ -86,24 +75,9 @@ export class ServerSetupStack extends Stack {
         const user = new User(this, 'deployment-user', {});
         AuthorizationToken.grantRead(user);
 
-        const images = {
-            application: new PlatformDockerResource(this, 'applicationImage', {
-                buildArgs: this.getBuildArgs(true),
-                taskType: 'application',
-            }),
-            init: new PlatformDockerResource(this, 'deploymentImage', {
-                buildArgs: this.getBuildArgs(true),
-                taskType: 'init',
-            }),
-            queue: new PlatformDockerResource(this, 'queueImage', {
-                buildArgs: this.getBuildArgs(true),
-                taskType: 'queue'
-            }),
-            // scheduler: new PlatformDockerResource(this, 'schedulerImage', {
-            //     buildArgs: this.getBuildArgs(true),
-            //     taskType: 'scheduler'
-            // })
-        };
+        const images = new PlatformDockerResource(this, 'applicationImage', {
+            buildArgs: this.getBuildArgs(true),
+        }).getImages();
 
         // SQS and QueueProcessingService
         const schedulerJobQueue = new Queue(this, 'job-queue', {
@@ -194,7 +168,8 @@ export class ServerSetupStack extends Stack {
             description: 'Role that the api task definitions use to run the api code',
         });
 
-        props.bucket.grantReadWrite(taskRole);
+        assetsStorageBucket.getBucket().grantReadWrite(taskRole);
+        applicationStorageBucket.grantReadWrite(taskRole);
 
         const applicationServiceDefinition = new TaskDefinitionResource(
             this,
@@ -232,20 +207,15 @@ export class ServerSetupStack extends Stack {
 
         const redis = redisResource.getRedis();
 
-        const ssmEnvironment = this.getEnvObject(props.APP_ENV);
-
-        const environment = {
-            ...ssmEnvironment,
-            DB_HOST: db.getDatabase().dbInstanceEndpointAddress,
-            DB_READ_HOST: db.getDatabase().dbInstanceEndpointAddress,
-            DB_WRITE_HOST: db.getDatabase().dbInstanceEndpointAddress,
-            DB_PORT: db.getDatabase().dbInstanceEndpointPort,
-            AWS_BUCKET: props.bucket.bucketName,
-            REDIS_HOST: redis.attrRedisEndpointAddress,
-            REDIS_PORT: `${redis.port}`,
-            SQS_PREFIX: `https://sqs.${props!.env!.region}.amazonaws.com/${this.account}`,
-            SQS_QUEUE: schedulerJobQueue.queueName
-        };
+        environment.append('DB_HOST', db.getDatabase().dbInstanceEndpointAddress)
+            .append('DB_READ_HOST', db.getDatabase().dbInstanceEndpointAddress)
+            .append('DB_WRITE_HOST', db.getDatabase().dbInstanceEndpointAddress)
+            .append('DB_PORT', db.getDatabase().dbInstanceEndpointPort)
+            .append('AWS_BUCKET', applicationStorageBucket.bucketName)
+            .append('REDIS_HOST', redis.attrRedisEndpointAddress)
+            .append('REDIS_PORT', `${redis.port}`)
+            .append('SQS_PREFIX', `https://sqs.${props!.env!.region}.amazonaws.com/${this.account}`)
+            .append('SQS_QUEUE', schedulerJobQueue.queueName);
 
         new CfnOutput(this, 'scheduler-job-queue-output', {
             value: schedulerJobQueue.queueUrl,
@@ -261,7 +231,7 @@ export class ServerSetupStack extends Stack {
         const initMigrateContainer = applicationServiceDefinition.addContainer('init-migrate', {
             essential: false, // mag stoppen zonder de hele task te beëindigen
             image: ContainerImage.fromDockerImageAsset(images.init),
-            environment,
+            environment: environment.getEnvironmentVars(),
             logging: LogDriver.awsLogs({
                 logGroup: applicationLogGroup,
                 streamPrefix: 'init-migrate',
@@ -273,7 +243,7 @@ export class ServerSetupStack extends Stack {
         // APPLICATION CONTAINER
         const applicationContainer = applicationServiceDefinition.addContainer('app-container', {
             cpu: 256,
-            environment,
+            environment: environment.getEnvironmentVars(),
             essential: true,
             image: ContainerImage.fromDockerImageAsset(images.application),
             logging: LogDriver.awsLogs({
@@ -309,28 +279,6 @@ export class ServerSetupStack extends Stack {
         sqsEndpoint.connections.allowFrom(backgroundTasksSecurityGroup, Port.tcp(443));
         sqsEndpoint.connections.allowFrom(applicationSecurityGroup.getSecurityGroup(), Port.tcp(443));
 
-        // Global Accelerator
-        const accelerator = new Accelerator(this, 'global-accelerator');
-
-        const acceleratorListener = accelerator.addListener('global-accelerator-listener', {
-            portRanges: [{ fromPort: 80 }, { fromPort: 443 }],
-        });
-
-        const endpointGroup = acceleratorListener.addEndpointGroup('global-accelerator-listener-alb-group', {
-            endpoints: [
-                new ApplicationLoadBalancerEndpoint(alb, {
-                    preserveClientIp: true,
-                }),
-            ],
-            healthCheckInterval: Duration.seconds(30),
-            healthCheckPath: '/up',
-            healthCheckProtocol: HealthCheckProtocol.HTTP,
-        });
-
-        const acceleratorSecurityGroup = endpointGroup.connectionsPeer('GlobalAcceleratorSG', vpc);
-
-        alb.connections.allowFrom(acceleratorSecurityGroup, Port.tcp(443));
-
         this.applicationLoadBalancer = alb;
 
         const queueWorkerLogGroup = new LogGroup(this, 'queue-worker-log-group', {
@@ -339,32 +287,25 @@ export class ServerSetupStack extends Stack {
             retention: 7
         });
 
-
         schedulerJobQueue.grantSendMessages(applicationServiceDefinition.obtainExecutionRole())
-
-        const sqsPolicy = new Policy(this, 'fargate-task-sqs-policy', {
-            statements: [
-                new PolicyStatement({
-                    effect: Effect.ALLOW,
-                    actions: ['sqs:*'],
-                    resources: [schedulerJobQueue.queueArn],
-                }),
-            ]
-        });
 
         new QueueResource(this, 'queued-jobs', {
             queueCluster: queueCluster,
             deploymentController: DeploymentControllerType.ECS,
-            environment,
+            environment: environment.getEnvironmentVars(),
             image: images.queue,
             queue: schedulerJobQueue,
             queueLogGroup: queueWorkerLogGroup,
             securityGroup: applicationSecurityGroup.getSecurityGroup(),
             subnetGroupName: SUBNET_APPLICATION.name,
             resources: {
-                sqsPolicy,
                 db: db.getDatabase()
             }
+        })
+
+        new DomainResource(this, 'DomainSetupResource', {
+            loadBalancer: this.applicationLoadBalancer,
+            stage: stage
         })
     }
 
@@ -376,68 +317,6 @@ export class ServerSetupStack extends Stack {
                 AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
                 AWS_REGION: process.env.AWS_REGION,
             };
-    }
-
-    getEnvObject(env: string): Record<string, string> {
-        const props = [
-            'APP_KEY',
-            'APP_ENV',
-            'APP_URL',
-            'DB_PASSWORD',
-            'DB_USERNAME',
-            'ASSET_URL',
-            'FILAMENT_FILESYSTEM_DISK',
-            'FILESYSTEM_DISK',
-            'BUGSNAG_API_KEY',
-            'MAIL_FROM_ADDRESS',
-            'MAILGUN_DOMAIN',
-            'MAILGUN_SECRET',
-            'MAILGUN_ENDPOINT',
-            'PHP_CLI_SERVER_WORKERS',
-            'BCRYPT_ROUNDS',
-            'BROADCAST_CONNECTION',
-            'MEMCACHED_HOST',
-            'MEILISEARCH_HOST',
-            'MEILISEARCH_KEY',
-            'APP_COMPANY_NAME',
-            'NIGHTWATCH_TOKEN',
-            'AWS_CDN_URL',
-            'NIGHTWATCH_REQUEST_SAMPLE_RATE',
-            'NIGHTWATCH_COMMAND_SAMPLE_RATE',
-            'MAILGUN_WEBHOOK_SIGNING_KEY',
-            'CHAT_GPT_API_KEY',
-            'SLACK_ALERT_WEBHOOK',
-            'PADDLE_CLIENT_SIDE_TOKEN',
-            'PADDLE_API_KEY',
-            'PADDLE_ENVIRONMENT',
-            'PADDLE_PRODUCT_ID',
-            'VITE_APP_NAME',
-            'VITE_API_ENDPOINT',
-            'VITE_BANNER_ASSETS_URL',
-            'PADDLE_WEBHOOK_SECRET',
-            'LAMBDA_WEBHOOKS_SECRET',
-            'AWS_LAMBDA_COOKIE_SCANNER_URL',
-            'AWS_LAMBDA_WEBSITE_SCRAPER_QUEUE',
-            'SETTINGS_CACHE_ENABLED',
-            'TURNSTILE_SITE_KEY',
-            'TURNSTILE_SECRET_KEY',
-            'REDIS_PASSWORD',
-            'DB_DATABASE',
-            'DB_CONNECTION',
-            'QUEUE_CONNECTION'
-        ];
-
-        const out = {} as Record<string, string>;
-
-        props.forEach((prop) => {
-            out[prop] = StringParameter.fromStringParameterName(
-                this,
-                `${env}-${prop}`,
-                `/cc/${env}/${prop}`,
-            ).stringValue;
-        });
-
-        return out;
     }
 
     getApplicationLoadBalancer(){

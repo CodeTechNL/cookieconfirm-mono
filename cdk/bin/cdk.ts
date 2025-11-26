@@ -5,8 +5,6 @@ import * as dotenvExpand from 'dotenv-expand';
 import {env} from "../lib/helpers";
 import {ConsentBannerStack} from "../lib/stacks/consent-banner-stack";
 import {CookieScannerStack} from "../lib/stacks/cookie-scanner-stack";
-import {ServerSetupStack} from "../lib/stacks/PlatformStack/server-setup-stack";
-import {PlatformAssetsStack} from "../lib/stacks/PlatformStack/platform-assets-stack";
 import {PlatformStack} from "../lib/stacks/platform-stack";
 
 const envResult = dotenv.config({
@@ -65,8 +63,7 @@ new CookieScannerStack(app, 'CookieScannerStack', {
 })
 
 new PlatformStack(app, 'PlatformStack', {
-    domain: "cookieconfirm.tech",
-    subdomain: "platform",
+    APP_ENV: "staging",
     env: {
         region: "eu-west-3",
         account: env('AWS_ACCOUNT'),
