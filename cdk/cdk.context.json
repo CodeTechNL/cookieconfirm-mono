@@ -15,5 +15,10 @@
     "eu-west-3a",
     "eu-west-3b",
     "eu-west-3c"
-  ]
+  ],
+  "ssm:account=585008041582:parameterName=/cc/staging/APP_MAIN_DOMAIN:region=eu-west-3": "cookieconfirm.tech",
+  "ssm:account=585008041582:parameterName=/cc/staging/APP_SUBDOMAIN:region=eu-west-3": "platform",
+  "ssm:account=585008041582:parameterName=/CookieConfirmStaging/APP_MAIN_DOMAIN:region=eu-west-3": "cookieconfirm.tech",
+  "ssm:account=585008041582:parameterName=/CookieConfirmStaging/APP_SUBDOMAIN:region=eu-west-3": "platform",
+  "ssm:account=585008041582:parameterName=/CookieConfirmStaging/APP_ASSETS_SUBDOMAIN:region=eu-west-3": "assets"
 }

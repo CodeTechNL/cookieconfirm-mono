@@ -48,6 +48,11 @@ export interface EnvironmentVariablesInterface {
     APP_SUBDOMAIN: string
     APP_MAIN_DOMAIN: string
 
+    APP_ASSETS_SUBDOMAIN: string
+    CLOUDFRONT_ASSETS_DOMAIN: string
+
+    DOMAIN_CERTIFICATE: string
+
     // Dynamic vars
     DB_HOST: string;
     DB_READ_HOST: string;
@@ -58,4 +63,8 @@ export interface EnvironmentVariablesInterface {
     REDIS_PORT: string;
     SQS_PREFIX: string;
     SQS_QUEUE: string;
+
+    APP_VERSION_HASH: string
+
+    AWS_BUCKET_ASSETS: string;
 }

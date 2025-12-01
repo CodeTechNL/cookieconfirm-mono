@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Standaardwaarden
-ENVIRONMENT="local"
+ENVIRONMENT="Staging"
 ENV_FILE=".env"
 AWS_REGION="eu-west-3"        # Regio vast op Parijs
 AWS_PROFILE="cookieconfirm"   # AWS profielnaam
@@ -74,7 +74,7 @@ while IFS= read -r line || [ -n "$line" ]; do
         value="${value:1:-1}"
     fi
 
-    param_name="/cc/${ENVIRONMENT}/${key}"
+    param_name="/CookieConfirm${ENVIRONMENT}/${key}"
 
     # BESTAAT PARAMETER AL?
     if aws ssm get-parameter \

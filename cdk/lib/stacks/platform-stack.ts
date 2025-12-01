@@ -2,36 +2,45 @@ import {Stack, StackProps, Environment} from "aws-cdk-lib"
 import {Construct} from "constructs"
 import {ServerSetupStack} from "./PlatformStack/server-setup-stack";
 import {FoundationStack} from "./PlatformStack/foundation-stack";
-import {env} from "../helpers";
+import {env, toPascalCase} from "../helpers";
+import {ApplicationType} from "../types/ApplicationType";
 
 interface PlatformAssetsStackProps extends StackProps {
+    version: string
     env: Environment
-    APP_ENV: string
+    cdk: {
+        name: string
+        stage: ApplicationType
+        baseDockerImage: string
+        certificateArn: string
+    },
 }
 
-/**
- * - Queue
- * - Lambda
- * - Event Bus
- * - Event Connection
- * - Event API Destination
- */
 export class PlatformStack extends Stack {
     constructor(scope: Construct, id: string, props: PlatformAssetsStackProps) {
         super(scope, id, props)
 
-        const {env, APP_ENV} = props;
+        const {name, stage, baseDockerImage, certificateArn} = props.cdk;
+        const {env, version} = props;
 
-        const foundationStack = new FoundationStack(scope, 'FoundationStack', {
+        const idPrefix = toPascalCase(name) + toPascalCase(stage);
+        const resourcePrefix = `${name}-${stage}`;
+
+        const foundationStack = new FoundationStack(scope, `FoundationStack`, {
             env,
-            APP_ENV
+            prefix: idPrefix,
+            version
         })
 
-        const serverSetupStack = new ServerSetupStack(scope, 'ServerSetupStack', {
-            stage: 'staging',
-            environmentVariables: foundationStack.getEnvironmentResource(),
+        const serverSetupStack = new ServerSetupStack(scope, `ServerSetupStack`, {
+            certificateArn,
+            baseDockerImage,
+            version,
+            stage,
+            prefix: idPrefix,
+            resourcePrefix,
             env,
-            APP_ENV
+            environmentVariables: foundationStack.getEnvironmentResource()
         })
 
         serverSetupStack.addDependency(foundationStack);

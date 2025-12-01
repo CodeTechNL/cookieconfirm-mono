@@ -40,15 +40,13 @@ export class TaskDefinitionResource extends Construct {
 
     addInitContainer(image: DockerImageAsset, environment: EnvironmentVariablesInterface, logGroup: LogGroup) {
         return this.taskDefinition.addContainer('init-migrate', {
-            essential: false, // mag stoppen zonder de hele task te beëindigen
+            essential: false,
             image: ContainerImage.fromDockerImageAsset(image),
             environment,
             logging: LogDriver.awsLogs({
                 logGroup,
                 streamPrefix: 'init-migrate',
             }),
-            entryPoint: ['sh', '-c'],
-            command: ['php artisan migrate --force'],
         });
     }
 

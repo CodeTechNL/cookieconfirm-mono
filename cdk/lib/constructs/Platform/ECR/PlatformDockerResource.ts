@@ -4,9 +4,10 @@ import { fromRoot } from '../../../helpers';
 
 type PlatformDockerProps = {
     buildArgs: Record<string, string>;
+    prefix: string
 };
 
-type TaskType = 'application' | 'queue' | 'init';
+type TaskType = 'init' | 'webserver' | 'queue' | 'scheduler'
 
 export class PlatformDockerResource extends Construct {
     public readonly images: Record<TaskType, DockerImageAsset>;
@@ -14,21 +15,30 @@ export class PlatformDockerResource extends Construct {
     constructor(scope: Construct, id: string, props: PlatformDockerProps) {
         super(scope, id);
 
-        const { buildArgs } = props;
+        const { buildArgs, prefix } = props;
 
         this.images = {} as Record<TaskType, DockerImageAsset>;
 
-        (['application', 'queue', 'init'] as const).forEach((taskType) => {
-            this.images[taskType] = new DockerImageAsset(this, `${taskType}Image`, {
+        (['webserver', 'queue', 'init'] as const).forEach((taskType) => {
+            this.images[taskType] = new DockerImageAsset(this, `${prefix}${taskType}Image`, {
                 directory: fromRoot('platform'),
-                file: `./docker/${taskType}/Dockerfile`,
+                file: `./docker/webserver.Dockerfile`,
                 buildArgs,
                 platform: Platform.LINUX_ARM64,
+                target: taskType
             });
         });
     }
 
-    getImages(){
-        return this.images;
+    getQueueImage() {
+        return this.images['queue'];
+    }
+
+    getWebserverImage() {
+        return this.images['webserver'];
+    }
+
+    getDeploymentImage() {
+        return this.images['init'];
     }
 }

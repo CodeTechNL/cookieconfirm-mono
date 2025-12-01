@@ -46,7 +46,7 @@ export class FargateContainerResource extends Construct {
             taskDefinition: taskDefinition,
             vpcSubnets: {
                 subnetGroupName: subnetApplicationName
-            }
+            },
         })
 
         this.getFargate().attachToApplicationTargetGroup(httpTargetGroup);

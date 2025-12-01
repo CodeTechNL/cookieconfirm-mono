@@ -18,7 +18,7 @@ type PlatformDatabaseProps = {
     databaseName: string
     allowGroups: IConnectable[]
     APP_ENV: string
-
+    prefix: string
 }
 
 export class PlatformDatabaseResource extends Construct {
@@ -27,7 +27,7 @@ export class PlatformDatabaseResource extends Construct {
     constructor(scope: Construct, id: string, props: PlatformDatabaseProps) {
         super(scope, id);
 
-        const {password, username} = this.getCredentials(props.APP_ENV);
+        const {password, username} = this.getCredentials(props.prefix);
 
         const {allowGroups, vpcResource} = props;
 
@@ -69,17 +69,17 @@ export class PlatformDatabaseResource extends Construct {
         return this.database;
     }
 
-    private getCredentials(env:string) {
+    private getCredentials(prefix:string) {
         const password = StringParameter.fromStringParameterName(
             this,
-            `${env}-DatabasePassword`,
-            `/cc/${env}/DB_PASSWORD`
+            `${prefix}DatabasePassword`,
+            `/${prefix}/DB_PASSWORD`
         ).stringValue
 
         const username = StringParameter.fromStringParameterName(
             this,
-            `${env}-DatabaseUsername`,
-            `/cc/${env}/DB_USERNAME`
+            `${prefix}DatabaseUsername`,
+            `/${prefix}/DB_USERNAME`
         ).stringValue
 
         return {password, username}

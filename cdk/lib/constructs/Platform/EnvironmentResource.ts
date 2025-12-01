@@ -3,7 +3,8 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { EnvironmentVariablesInterface } from '../../interfaces/EnvironmentVariablesInterface';
 
 interface EnvironmentResourceProps {
-    APP_ENV: string;
+    prefix: string;
+    version: string
 }
 
 export class EnvironmentResource extends Construct {
@@ -56,15 +57,22 @@ export class EnvironmentResource extends Construct {
         'QUEUE_CONNECTION',
         'APP_SUBDOMAIN',
         'APP_MAIN_DOMAIN',
+        'APP_ASSETS_SUBDOMAIN',
+        'DOMAIN_CERTIFICATE',
+        'APP_VERSION_HASH'
     ];
 
     constructor(scope: Construct, id: string, props: EnvironmentResourceProps) {
         super(scope, id);
 
-        const vars = this.getEnvObject(props.APP_ENV);
+        const {prefix, version} = props;
+        const vars = this.getEnvObject(prefix);
 
         // Set the APP_URL based on the subdomain and Main Domain
         vars.APP_URL = `https://${vars.APP_SUBDOMAIN}.${vars.APP_MAIN_DOMAIN}`;
+        vars.ASSET_URL = `https://${vars.APP_ASSETS_SUBDOMAIN}.${vars.APP_MAIN_DOMAIN}/${version}`;
+        vars.CLOUDFRONT_ASSETS_DOMAIN = `${vars.APP_ASSETS_SUBDOMAIN}.${vars.APP_MAIN_DOMAIN}`;
+        vars.APP_VERSION_HASH = version;
 
         this.environmentVars = vars;
     }
@@ -73,14 +81,14 @@ export class EnvironmentResource extends Construct {
         return this.environmentVars;
     }
 
-    private getEnvObject(env: string): EnvironmentVariablesInterface {
+    private getEnvObject(prefix: string): EnvironmentVariablesInterface {
         const out = {} as EnvironmentVariablesInterface;
 
         this.keys.forEach((key) => {
             out[key] = StringParameter.fromStringParameterName(
                 this,
-                `${env}-${key}`,
-                `/cc/${env}/${key}`,
+                `${prefix}-${key}`,
+                `/${prefix}/${key}`,
             ).stringValue;
         });
 

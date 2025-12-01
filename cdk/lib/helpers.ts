@@ -9,3 +9,22 @@ export const env = (name: string): string => {
     }
     return value;
 }
+
+export const toPascalCase = (input: string) => {
+    return input
+        .replace(/[_\-\s]+/g, ' ')                 // alles wat scheidt ? spatie
+        .trim()
+        .toLowerCase()
+        .split(' ')
+        .filter(Boolean)                           // lege delen weggooien
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join('');
+}
+
+export const uuid = ():string=> {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;          // random nibble
+        const v = c === 'x' ? r : (r & 0x3 | 0x8); // variant bits
+        return v.toString(16);
+    });
+}
