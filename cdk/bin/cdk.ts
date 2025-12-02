@@ -78,7 +78,7 @@ new PlatformStack(app, 'PlatformStack', {
     cdk: {
         name: 'cookie-confirm',
         stage: 'staging',
-        baseDockerImage: '585008041582.dkr.ecr.eu-west-3.amazonaws.com/cdk-hnb659fds-container-assets-585008041582-eu-west-3:09129c15b1c8877bf8a5aa852c1855508a632885b478a29d7f0b49da811f8668',
+        baseDockerImage: '585008041582.dkr.ecr.eu-west-3.amazonaws.com/cdk-hnb659fds-container-assets-585008041582-eu-west-3:00bbf7bd00166c64d2fa83e315d2c261695a3da459e3899cd50bf9a52a96eb2f',
         certificateArn: 'arn:aws:acm:eu-west-3:585008041582:certificate/4b315ff2-8173-4192-a786-3ff9fca41399'
     },
     env: {
