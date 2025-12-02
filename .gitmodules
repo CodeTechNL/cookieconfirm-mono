@@ -7,3 +7,6 @@
 [submodule "lambda/cookie-scanner"]
 	path = lambda/cookie-scanner
 	url = git@github.com:Cookie-Confirm/aws-lambda-cookie-scanner.git
+[submodule "lambda/banner-screen-capture"]
+	path = lambda/banner-screen-capture
+	url = git@github.com:Cookie-Confirm/aws-lambda-screenshot-cookie-banner.git
