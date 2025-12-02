@@ -1,8 +1,8 @@
 [submodule "cookie-scanner"]
-	path = cookie-scanner
+	path = lambda/aws-lambda-cookie-scanner
 	url = git@github.com:Cookie-Confirm/aws-lambda-cookie-scanner.git
 [submodule "banner-screen-capture"]
-	path = banner-screen-capture
+	path = lambda/aws-lambda-screenshot-cookie-banner
 	url = git@github.com:Cookie-Confirm/aws-lambda-screenshot-cookie-banner.git
 [submodule "banner/platform"]
 	path = banner/platform

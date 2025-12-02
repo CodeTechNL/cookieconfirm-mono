@@ -26,41 +26,6 @@ export class PhpImageStack extends Stack {
             displayName: `PhpImage-${imageName}`,
         });
 
-        // 1) Manifest van de hash-tag ophalen
-        const getManifest = new AwsCustomResource(this, `GetManifest${toPascalCase(imageName)}`, {
-            onCreate: {
-                service: 'ECR',
-                action: 'batchGetImage',
-                parameters: {
-                    repositoryName: imageAsset.repository.repositoryName,
-                    imageIds: [
-                        { imageTag: imageAsset.imageTag }, // de hash-tag van DockerImageAsset
-                    ],
-                },
-                physicalResourceId: { id: `get-manifest-${imageAsset.imageTag}` },
-            },
-            policy: AwsCustomResourcePolicy.fromSdkCalls({
-                resources: AwsCustomResourcePolicy.ANY_RESOURCE,
-            }),
-        });
-
-        // 2) Zelfde image met tag "latest" wegschrijven
-        new AwsCustomResource(this, `TagLatest${toPascalCase(imageName)}`, {
-            onCreate: {
-                service: 'ECR',
-                action: 'putImage',
-                parameters: {
-                    repositoryName: imageAsset.repository.repositoryName,
-                    imageManifest: getManifest.getResponseField('images.0.imageManifest'),
-                    imageTag: 'latest',
-                },
-                physicalResourceId: { id: `tag-latest-${imageAsset.imageTag}` },
-            },
-            policy: AwsCustomResourcePolicy.fromSdkCalls({
-                resources: AwsCustomResourcePolicy.ANY_RESOURCE,
-            }),
-        });
-
 
         // Handige outputs
         new CfnOutput(this, `BasePhpImageUri${toPascalCase(imageName)}`, {
