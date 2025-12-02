@@ -1,15 +1,15 @@
 [submodule "cookie-scanner"]
 	path = cookie-scanner
-	url = https://github.com/Cookie-Confirm/aws-lambda-cookie-scanner.git
+	url = git@github.com:Cookie-Confirm/aws-lambda-cookie-scanner.git
 [submodule "banner-screen-capture"]
 	path = banner-screen-capture
-	url = https://github.com/Cookie-Confirm/aws-lambda-screenshot-cookie-banner.git
+	url = git@github.com:Cookie-Confirm/aws-lambda-screenshot-cookie-banner.git
 [submodule "banner/platform"]
 	path = banner/platform
-	url = https://github.com/CodeTechNL/cookieconfirm.git
+	url = git@github.com:CodeTechNL/cookieconfirm.git
 [submodule "platform"]
 	path = platform
-	url = https://github.com/CodeTechNL/cookieconfirm.git
+	url = git@github.com:CodeTechNL/cookieconfirm.git
 [submodule "gtm-template"]
 	path = gtm-template
-	url = https://github.com/Cookie-Confirm/google-tag-manager-template.git
+	url = git@github.com:Cookie-Confirm/google-tag-manager-template.git
