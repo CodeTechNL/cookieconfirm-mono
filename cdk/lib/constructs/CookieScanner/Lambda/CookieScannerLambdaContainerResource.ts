@@ -17,7 +17,7 @@ export class CookieScannerLambdaContainerResource extends DockerImageFunction {
 
 
         const baseProps = {
-            code: DockerImageCode.fromImageAsset(fromRoot("cookie-scanner"), {
+            code: DockerImageCode.fromImageAsset(fromRoot("lambda","cookie-scanner"), {
                 file: "Dockerfile",
                 platform: Platform.LINUX_AMD64,
             }),

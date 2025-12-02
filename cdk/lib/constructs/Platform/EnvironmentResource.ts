@@ -59,7 +59,14 @@ export class EnvironmentResource extends Construct {
         'APP_MAIN_DOMAIN',
         'APP_ASSETS_SUBDOMAIN',
         'DOMAIN_CERTIFICATE',
-        'APP_VERSION_HASH'
+        'APP_VERSION_HASH',
+        'SCANNER_QUEUE_NAME',
+        'SCANNER_WEBHOOK_POST_ENDPOINT',
+        'SCANNER_WEBHOOK_SEND_API_KEY',
+        'SCANNER_EVENT_BRIDGE_CONNECTION_NAME',
+        'SCANNER_EVENT_BRIDGE_EVENT_DETAIL_TYPE',
+        'SCANNER_EVENT_BRIDGE_EVENT_SOURCE_NAME',
+        'SCANNER_EVENT_BRIDGE_EVENT_BUS_NAME',
     ];
 
     constructor(scope: Construct, id: string, props: EnvironmentResourceProps) {

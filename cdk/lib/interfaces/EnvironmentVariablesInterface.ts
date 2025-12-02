@@ -47,11 +47,41 @@ export interface EnvironmentVariablesInterface {
     QUEUE_CONNECTION: string
     APP_SUBDOMAIN: string
     APP_MAIN_DOMAIN: string
-
     APP_ASSETS_SUBDOMAIN: string
     CLOUDFRONT_ASSETS_DOMAIN: string
 
     DOMAIN_CERTIFICATE: string
+
+    APP_ENVIRONMENT: string;
+    APP_DOMAIN: string;
+
+
+    VITE_APP_URL: string;
+    VITE_CDN_URL: string;
+
+    CLOUDFRONT_CERTIFICATE_ARN: string;
+    CLOUDFRONT_SUBDOMAIN: string;
+
+    ATHENA_CONSENT_LOGS_WORK_GROUP: string;
+    ATHENA_CONSENT_LOGS_RAW_BUCKET: string;
+    ATHENA_CONSENT_LOGS_DATABASE: string;
+    ATHENA_CONSENT_LOGS_TABLE: string;
+    ATHENA_CONSENT_LOGS_STORAGE_PATH_S3: string;
+
+    FIREHOSE_CONSENT_LOGS_STREAM: string;
+    FIREHOSE_CONSENT_LOGS_STREAM_INTERVAL: string;
+    FIREHOSE_CONSENT_LOGS_STREAM_SIZE: string;
+
+    S3_BANNER_ASSETS_BUCKET: string;
+    S3_BANNER_COMPONENTS_BUCKET: string;
+
+    SCANNER_QUEUE_NAME: string;
+    SCANNER_WEBHOOK_POST_ENDPOINT: string;
+    SCANNER_WEBHOOK_SEND_API_KEY: string;
+    SCANNER_EVENT_BRIDGE_CONNECTION_NAME: string;
+    SCANNER_EVENT_BRIDGE_EVENT_DETAIL_TYPE: string;
+    SCANNER_EVENT_BRIDGE_EVENT_SOURCE_NAME: string;
+    SCANNER_EVENT_BRIDGE_EVENT_BUS_NAME: string;
 
     // Dynamic vars
     DB_HOST: string;
@@ -67,4 +97,6 @@ export interface EnvironmentVariablesInterface {
     APP_VERSION_HASH: string
 
     AWS_BUCKET_ASSETS: string;
+
+
 }

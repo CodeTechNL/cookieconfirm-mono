@@ -3,6 +3,11 @@
 // tools/environment-generator -> project root is two levels up
 export const ENV_FILES = [
     {
+        id: 'global-config',
+        label: 'Global (.env.example)',
+        path: '../../.env.example.production',
+    },
+    {
         id: 'platform-production',
         label: 'Platform (.env.example)',
         path: '../../platform/.env.example',

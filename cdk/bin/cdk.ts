@@ -3,10 +3,9 @@ import * as cdk from 'aws-cdk-lib';
 import * as dotenv from 'dotenv';
 import * as dotenvExpand from 'dotenv-expand';
 import {env, uuid} from "../lib/helpers";
-import {ConsentBannerStack} from "../lib/stacks/consent-banner-stack";
-import {CookieScannerStack} from "../lib/stacks/cookie-scanner-stack";
 import {PlatformStack} from "../lib/stacks/platform-stack";
 import {PhpImageStack} from "../lib/stacks/php-image-stack";
+import {CookieScannerStack} from "../lib/stacks/cookie-scanner-stack";
 
 const envResult = dotenv.config({
     path: '../.env',
@@ -58,7 +57,19 @@ new PhpImageStack(app, `Php83Stack`, {
 //     }
 // })
 //
-// new CookieScannerStack(app, 'CookieScannerStack', {
+
+new CookieScannerStack(app, 'CookieScannerStack', {
+    cdk: {
+        name: "cookie-confirm",
+        stage: "staging"
+    },
+    env: {
+        region: "eu-west-3",
+        account: env('AWS_ACCOUNT'),
+    }
+})
+
+// new ScannerSetupStack(app, 'CookieScannerStack', {
 //     queueName: env('SCANNER_QUEUE_NAME'),//"cookie-scanner-queue",
 //     apiKey: env('SCANNER_WEBHOOK_SEND_API_KEY'),
 //     connectionName: env('SCANNER_EVENT_BRIDGE_CONNECTION_NAME'),
@@ -70,7 +81,7 @@ new PhpImageStack(app, `Php83Stack`, {
 //         region: env('AWS_REGION'),
 //     }
 // })
-//
+
 
 
 new PlatformStack(app, 'PlatformStack', {
