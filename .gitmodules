@@ -4,9 +4,6 @@
 [submodule "platform"]
 	path = platform
 	url = git@github.com:CodeTechNL/cookieconfirm.git
-[submodule "lambda/cookie-scanner"]
-	path = lambda/cookie-scanner
-	url = git@github.com:Cookie-Confirm/aws-lambda-cookie-scanner.git
 [submodule "lambda/banner-screen-capture"]
 	path = lambda/banner-screen-capture
 	url = git@github.com:Cookie-Confirm/aws-lambda-screenshot-cookie-banner.git

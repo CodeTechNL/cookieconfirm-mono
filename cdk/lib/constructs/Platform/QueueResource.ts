@@ -13,7 +13,7 @@ import {DockerImageAsset, Platform} from "aws-cdk-lib/aws-ecr-assets";
 import {LogGroup} from "aws-cdk-lib/aws-logs";
 import {Queue} from "aws-cdk-lib/aws-sqs";
 import {QueueProcessingFargateService} from "aws-cdk-lib/aws-ecs-patterns";
-import {DatabaseInstance} from "aws-cdk-lib/aws-rds";
+import {DatabaseInstance, IDatabaseInstance} from "aws-cdk-lib/aws-rds";
 import {VpcResource} from "./VpcResource";
 
 type QueueProps = {
@@ -25,7 +25,7 @@ type QueueProps = {
     image: DockerImageAsset
     securityGroup: SecurityGroup,
     resources: {
-        db: DatabaseInstance
+        db: IDatabaseInstance
     }
 }
 
@@ -100,7 +100,7 @@ export class QueueResource extends QueueProcessingFargateService {
         this.setPermissions(image, queue, queueLogGroup, sqsPolicy, resources.db)
     }
 
-    setPermissions(queueWorkerImage:DockerImageAsset, schedulerJobQueue: Queue, queueWorkerLogGroup: LogGroup, sqsPolicy: Policy, db: DatabaseInstance){
+    setPermissions(queueWorkerImage:DockerImageAsset, schedulerJobQueue: Queue, queueWorkerLogGroup: LogGroup, sqsPolicy: Policy, db: IDatabaseInstance){
         queueWorkerImage.repository.grantPull(this.taskDefinition.obtainExecutionRole());
         this.taskDefinition.taskRole.attachInlinePolicy(sqsPolicy);
         schedulerJobQueue.grantSendMessages(this.taskDefinition.obtainExecutionRole());

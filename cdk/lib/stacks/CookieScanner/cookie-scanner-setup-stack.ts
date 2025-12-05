@@ -11,40 +11,35 @@ import {EnvironmentResource} from "../../constructs/Platform/EnvironmentResource
 
 interface CookieScannerStackProps extends StackProps {
     environmentVariables: EnvironmentResource,
+    idPrefix: string,
 }
 
-/**
- * - Queue
- * - Lambda
- * - Event Bus
- * - Event Connection
- * - Event API Destination
- */
 export class CookieScannerSetupStack extends Stack {
     constructor(scope: Construct, id: string, props: CookieScannerStackProps) {
         super(scope, id, props)
 
         const environmentVariables = props.environmentVariables.getEnvironmentVars();
 
-        const queue = new CookieScanRequestSqsResource(this, 'CookieScannerQueue', {
+        const {idPrefix} = props;
+        const queue = new CookieScanRequestSqsResource(this, `${idPrefix}CookieScannerQueue`, {
             queueName: environmentVariables.SCANNER_QUEUE_NAME
         })
 
-        const eventBus = new EventBusResource(this, 'CookiesScannedEventBus', {
+        const eventBus = new EventBusResource(this, `${idPrefix}CookiesScannedEventBus`, {
             busName: environmentVariables.SCANNER_EVENT_BRIDGE_EVENT_BUS_NAME,
         })
 
-        const connection = new EventConnectionResource(this, 'CookiesConnectionResource', {
+        const connection = new EventConnectionResource(this, `${idPrefix}CookiesConnectionResource`, {
             apiKey: environmentVariables.SCANNER_WEBHOOK_SEND_API_KEY,
             connectionName: environmentVariables.SCANNER_EVENT_BRIDGE_CONNECTION_NAME,
         });
 
-        const apiDestination = new ApiDestinationResource(this, 'CookiesDestination', {
+        const apiDestination = new ApiDestinationResource(this, `${idPrefix}CookiesDestination`, {
             connection,
             endpoint: environmentVariables.SCANNER_WEBHOOK_POST_ENDPOINT,
         })
 
-        const lambdaFunction = new CookieScannerLambdaContainerResource(this, 'CookiesLambdaFunction', {
+        const lambdaFunction = new CookieScannerLambdaContainerResource(this, `${idPrefix}CookiesLambdaFunction`, {
             bus: environmentVariables.SCANNER_EVENT_BRIDGE_EVENT_BUS_NAME,
             eventDetail: environmentVariables.SCANNER_EVENT_BRIDGE_EVENT_DETAIL_TYPE,
             eventSource: environmentVariables.SCANNER_EVENT_BRIDGE_EVENT_SOURCE_NAME
@@ -59,7 +54,7 @@ export class CookieScannerSetupStack extends Stack {
 
         eventBus.grantPutEventsTo(lambdaFunction)
 
-        new EventRuleResource(this, 'CookiesRuleResource', {
+        new EventRuleResource(this, `${idPrefix}CookiesRuleResource`, {
             apiDestination,
             eventBus,
             eventDetailType: environmentVariables.SCANNER_EVENT_BRIDGE_EVENT_DETAIL_TYPE,

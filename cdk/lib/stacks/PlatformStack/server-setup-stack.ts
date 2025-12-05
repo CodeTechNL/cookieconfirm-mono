@@ -30,9 +30,8 @@ interface PlatformProps extends StackProps {
     certificateArn: string;
     baseDockerImage: string;
     version: string
-    stage: ApplicationType
     environmentVariables: EnvironmentResource,
-    prefix: string
+    idPrefix: string
     resourcePrefix: string
     env: Environment
 }
@@ -43,54 +42,54 @@ export class ServerSetupStack extends Stack {
 
         const environment = props.environmentVariables;
 
-        const { stage, prefix, resourcePrefix, version, baseDockerImage, certificateArn } = props;
+        const { idPrefix, resourcePrefix, version, baseDockerImage, certificateArn } = props;
         const region = props.env!.region as string;
 
-        const assetsStorageBucket = new PlatformAssetsResource(this, `${prefix}PlatformAssetsResource`, {
+        const assetsStorageBucket = new PlatformAssetsResource(this, `${idPrefix}PlatformAssetsResource`, {
             bucketName: `${resourcePrefix}-platform-assets`,
             domain: `${environment.getEnvironmentVars().CLOUDFRONT_ASSETS_DOMAIN}`,
-            prefix,
+            prefix: idPrefix,
             certificateArn: environment.getEnvironmentVars().DOMAIN_CERTIFICATE
         });
 
-        const applicationStorageBucket = new PlatformStorageResource(this, `${prefix}PlatformApplicationStorageResource`, {
+        const applicationStorageBucket = new PlatformStorageResource(this, `${idPrefix}PlatformApplicationStorageResource`, {
             bucketName: `${resourcePrefix}-platform-storage`,
         })
 
-        const vpcResource = new VpcResource(this, `${prefix}Vpc`, {
-            prefix
+        const vpcResource = new VpcResource(this, `${idPrefix}Vpc`, {
+            prefix: idPrefix
         });
 
-        const user = new User(this, `${prefix}DeploymentUser`, {});
+        const user = new User(this, `${idPrefix}DeploymentUser`, {});
 
         AuthorizationToken.grantRead(user);
 
-        const images = new PlatformDockerResource(this, `${prefix}ApplicationImage`, {
+        const images = new PlatformDockerResource(this, `${idPrefix}ApplicationImage`, {
             buildArgs: this.getBuildArgs(true, version, baseDockerImage),
-            prefix,
+            prefix: idPrefix,
         });
 
         // SQS and QueueProcessingService
-        const jobQueue = new Queue(this, `${prefix}JobQueue`, {
+        const jobQueue = new Queue(this, `${idPrefix}JobQueue`, {
             queueName: `${resourcePrefix}-platform-queue`
         });
 
-        const alb = new ApplicationLoadBalancerResource(this, `${prefix}ApplicationALB`, {
+        const alb = new ApplicationLoadBalancerResource(this, `${idPrefix}ApplicationALB`, {
             vpcResource,
-            prefix,
+            prefix: idPrefix,
             certificateArn
         });
 
 
 
         // Fargate Service Things
-        const cluster = new Cluster(this, `${prefix}ApplicationCluster`, {
+        const cluster = new Cluster(this, `${idPrefix}ApplicationCluster`, {
             clusterName: `${resourcePrefix}-application`,
             vpc: vpcResource.getVpc(),
         });
 
         // LOG GROUPS
-        const applicationLogGroup = new LogGroup(this, `${prefix}ApplicationLogGroup`, {
+        const applicationLogGroup = new LogGroup(this, `${idPrefix}ApplicationLogGroup`, {
             logGroupName: `${resourcePrefix}-application`,
             removalPolicy: RemovalPolicy.DESTROY,
             retention: 30,
@@ -98,7 +97,7 @@ export class ServerSetupStack extends Stack {
 
         applicationLogGroup.grant(user, 'logs:CreateLogGroup');
 
-        const taskRole = new Role(this, `${prefix}FargateTaskRole`, {
+        const taskRole = new Role(this, `${idPrefix}FargateTaskRole`, {
             assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
             roleName: `${resourcePrefix}ApplicationFargateTaskRole`,
             description: 'Role that the api task definitions use to run the api code',
@@ -107,32 +106,32 @@ export class ServerSetupStack extends Stack {
         assetsStorageBucket.getBucket().grantReadWrite(taskRole);
         applicationStorageBucket.grantReadWrite(taskRole);
 
-        const applicationServiceDefinition = new TaskDefinitionResource(this, `${prefix}ApplicationFargateServiceDefinition`, {
+        const applicationServiceDefinition = new TaskDefinitionResource(this, `${idPrefix}ApplicationFargateServiceDefinition`, {
                 taskRole: taskRole,
             },
         );
 
-        const applicationSecurityGroup = new SecurityGroupResource(this, `${prefix}ApplicationSgResource`, {
+        const applicationSecurityGroup = new SecurityGroupResource(this, `${idPrefix}ApplicationSgResource`, {
             vpcResource,
             loadBalancerSecurityGroup: alb.getLoadBalancerSecurityGroup(),
-            prefix
+            prefix: idPrefix
         });
 
-        const queueTasksSecurityGroup = new SecurityGroup(this, `${prefix}BackgroundTaskSG`, {
+        const queueTasksSecurityGroup = new SecurityGroup(this, `${idPrefix}BackgroundTaskSG`, {
             vpc: vpcResource.getVpc(),
             description: 'SecurityGroup into which scheduler ECS tasks will be deployed',
             allowAllOutbound: true,
         });
 
-        const db = new PlatformDatabaseResource(this, `${prefix}PlatformDatabaseResource`, {
-            prefix,
+        const db = new PlatformDatabaseResource(this, `${idPrefix}PlatformDatabaseResource`, {
+            prefix: idPrefix,
             allowGroups: [applicationSecurityGroup.getSecurityGroup(), queueTasksSecurityGroup],
             databaseName: `${resourcePrefix}-database`,
             vpcResource,
-            APP_ENV: stage
+            APP_ENV: environment.getEnvironmentVars().APP_ENV
         });
 
-        const redisResource = new RedisCacheClusterResource(this, `${prefix}RedisCluster`, {
+        const redisResource = new RedisCacheClusterResource(this, `${idPrefix}RedisCluster`, {
             allowConnections: [applicationSecurityGroup.getSecurityGroup(), queueTasksSecurityGroup],
             vpc: vpcResource.getVpc(),
         });
@@ -150,12 +149,12 @@ export class ServerSetupStack extends Stack {
             .append('SQS_PREFIX', `https://sqs.${props!.env!.region}.amazonaws.com/${this.account}`)
             .append('SQS_QUEUE', jobQueue.queueName);
 
-        new CfnOutput(this, `${prefix}AppHashInfo`, {
+        new CfnOutput(this, `${idPrefix}AppHashInfo`, {
             value: environment.getEnvironmentVars().APP_VERSION_HASH,
             description: 'App Version'
         })
 
-        new CfnOutput(this, `${prefix}SchedulerJobQueueOutput`, {
+        new CfnOutput(this, `${idPrefix}SchedulerJobQueueOutput`, {
             value: jobQueue.queueUrl,
             description: 'SQS Queue URL'
         })
@@ -173,7 +172,7 @@ export class ServerSetupStack extends Stack {
         );
 
         // Webserver
-        new FargateContainerResource(this, `${prefix}ApplicationFargateService`, {
+        new FargateContainerResource(this, `${idPrefix}ApplicationFargateService`, {
             applicationLogGroup: applicationLogGroup,
             httpTargetGroup: alb.getHttpTargetGroup(),
             image: images.getWebserverImage(),
@@ -185,15 +184,15 @@ export class ServerSetupStack extends Stack {
 
         vpcResource.addHttpsConnection(queueTasksSecurityGroup, applicationSecurityGroup.getSecurityGroup());
 
-        const queueWorkerLogGroup = new LogGroup(this, `${prefix}QueueWorkerLogGroup`, {
-            logGroupName: `${prefix}-queue-worker`,
+        const queueWorkerLogGroup = new LogGroup(this, `${idPrefix}QueueWorkerLogGroup`, {
+            logGroupName: `${idPrefix}-queue-worker`,
             removalPolicy: RemovalPolicy.DESTROY,
             retention: 7
         });
 
         jobQueue.grantSendMessages(applicationServiceDefinition.getTasDefinition().obtainExecutionRole())
 
-        new QueueResource(this, `${prefix}QueuedJobs`, {
+        new QueueResource(this, `${idPrefix}QueuedJobs`, {
             vpcResource,
             deploymentController: DeploymentControllerType.ECS,
             environment: environment.getEnvironmentVars(),
@@ -206,12 +205,12 @@ export class ServerSetupStack extends Stack {
             }
         })
 
-        new DomainResource(this, `${prefix}DomainSetupResource`, {
+        new DomainResource(this, `${idPrefix}DomainSetupResource`, {
             loadBalancer: alb.getLoadBalancer(),
             cloudfrontDistribution: assetsStorageBucket.getDistribution(),
-            stage,
+            stage: environment.getEnvironmentVars().APP_ENV as ApplicationType,
             region,
-            prefix
+            prefix: idPrefix
         })
     }
 

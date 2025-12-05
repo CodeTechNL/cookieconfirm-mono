@@ -4,7 +4,7 @@ import {EnvironmentResource} from "../../constructs/Platform/EnvironmentResource
 import {AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId} from "aws-cdk-lib/custom-resources";
 
 interface FoundationStackProps extends StackProps {
-    prefix: string
+    idPrefix: string
     version: string
 }
 
@@ -15,18 +15,18 @@ export class FoundationStack extends Stack {
     constructor(scope: Construct, id: string, props: FoundationStackProps) {
         super(scope, id, props);
 
-        const {prefix, version} = props;
+        const {idPrefix, version} = props;
 
-        new CfnOutput(this, `${prefix}VersionBeforeBuild`, {
+        new CfnOutput(this, `${idPrefix}VersionBeforeBuild`, {
             value: version
         })
 
-        new CfnOutput(this, `${prefix}PrefixValue`, {
-            value: prefix
+        new CfnOutput(this, `${idPrefix}PrefixValue`, {
+            value: idPrefix
         })
 
-        this.environmentResource = new EnvironmentResource(this, `${prefix}EnvironmentVariables`, {
-            prefix,
+        this.environmentResource = new EnvironmentResource(this, `${idPrefix}EnvironmentVariables`, {
+            idPrefix,
             version
         });
 

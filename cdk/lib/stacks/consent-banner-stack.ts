@@ -4,6 +4,7 @@ import {ConsentStorageStack} from "./ConsentBannerStacks/consent-storage-stack";
 import {FrontendBannerStack} from "./ConsentBannerStacks/frontend-banner-stack";
 
 interface ConsentBannerStackProps extends StackProps {
+    idPrefix: string;
     app: {
         url: string;
         cdnUrl: string;
@@ -41,6 +42,7 @@ export class ConsentBannerStack extends Stack {
     constructor(scope: Construct, id: string, props: ConsentBannerStackProps) {
         super(scope, id, props)
 
+        const {idPrefix} = props;
         const app = props.app;
         const athenaConfig = props.services.athena
         const firehoseConfig = props.services.firehose
@@ -48,7 +50,8 @@ export class ConsentBannerStack extends Stack {
         const s3Config = props.services.s3
         const cloudfrontConfig = props.services.cloudfront;
 
-        const consentBannerStack = new ConsentStorageStack(this, 'ConsentBannerStack', {
+        const consentBannerStack = new ConsentStorageStack(this, `${idPrefix}ConsentBannerStack`, {
+            idPrefix,
             services: {
                 athena: {
                     workGroup: athenaConfig.workGroup,
@@ -69,7 +72,8 @@ export class ConsentBannerStack extends Stack {
             },
         });
 
-        const cloudfrontStack = new FrontendBannerStack(this, 'CloudfrontDistributionStack', {
+        const cloudfrontStack = new FrontendBannerStack(this, `${idPrefix}CloudfrontDistributionStack`, {
+            idPrefix,
             app: {
                 url: app.url,
                 cdnUrl: app.cdnUrl
@@ -98,6 +102,5 @@ export class ConsentBannerStack extends Stack {
         });
 
         consentBannerStack.addDependency(cloudfrontStack);
-
     }
 }

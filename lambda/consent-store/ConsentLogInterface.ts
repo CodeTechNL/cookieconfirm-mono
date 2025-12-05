@@ -1,5 +1,5 @@
 export interface ConsentLogInterface{
-    uuid:string
+    uuid: string
     ipAddress: string
     country: string
     pageUrl: string

@@ -3,7 +3,7 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { EnvironmentVariablesInterface } from '../../interfaces/EnvironmentVariablesInterface';
 
 interface EnvironmentResourceProps {
-    prefix: string;
+    idPrefix: string;
     version: string
 }
 
@@ -72,8 +72,8 @@ export class EnvironmentResource extends Construct {
     constructor(scope: Construct, id: string, props: EnvironmentResourceProps) {
         super(scope, id);
 
-        const {prefix, version} = props;
-        const vars = this.getEnvObject(prefix);
+        const {idPrefix, version} = props;
+        const vars = this.getEnvObject(idPrefix);
 
         // Set the APP_URL based on the subdomain and Main Domain
         vars.APP_URL = `https://${vars.APP_SUBDOMAIN}.${vars.APP_MAIN_DOMAIN}`;

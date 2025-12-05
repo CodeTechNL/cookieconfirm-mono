@@ -10,6 +10,7 @@ import {LambdaConsentStoreResource} from "../../constructs/ConsentLogs/Lambda/La
 import {CloudfrontDomainSetup} from "../../constructs/ConsentLogs/Route53/CloudfrontDomainSetup";
 
 interface SharedStackProps extends StackProps {
+    idPrefix: string
     app: {
         url: string;
         cdnUrl: string;
@@ -37,6 +38,7 @@ export class FrontendBannerStack extends Stack {
     constructor(scope: Construct, id: string, props: SharedStackProps) {
         super(scope, id, props)
 
+        const {idPrefix} = props;
         const {javascriptBucketName, jsonFilesBucketName} = props.services.s3;
         const {athenaConsentLogBucket} = props.services.athena;
         const {streamName} = props.services.firehose;
@@ -52,7 +54,7 @@ export class FrontendBannerStack extends Stack {
          */
         const jsonFilesBucket = this.createJsonFilesBucket(jsonFilesBucketName)
 
-        const distributionResource = new CdnDistributionResource(this, 'AssetsDistributionResource', {
+        const distributionResource = new CdnDistributionResource(this, `${idPrefix}AssetsDistributionResource`, {
             origin: javascriptBucket.getOrigin(),
             certificateArn: certificateArn,
             domainNames: [
@@ -60,13 +62,13 @@ export class FrontendBannerStack extends Stack {
             ],
         });
 
-        new CloudfrontDomainSetup(this, 'CloudfrontDomainSetup', {
+        new CloudfrontDomainSetup(this, `${idPrefix}CloudfrontDomainSetup`, {
             hostedZoneDomain: hostedZoneDomain,
             recordName: recordName, // maakt banner.cookieconfirm.com
             distribution: distributionResource.getResource(),
         });
 
-        const consentFunction = new LambdaConsentStoreResource(this, 'LambdaConsentStoreResource', {
+        const consentFunction = new LambdaConsentStoreResource(this, `${idPrefix}LambdaConsentStoreResource`, {
             awsAccount: this.account,
             bucketName: athenaConsentLogBucket,
             streamName: streamName

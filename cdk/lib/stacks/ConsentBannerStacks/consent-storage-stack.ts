@@ -9,6 +9,7 @@ import {
 } from "../../constructs/ConsentLogs/S3/AthenaDatabaseBucketProcessedResource";
 
 interface ConsentBannerStackProps extends StackProps {
+    idPrefix: string,
     services: {
         firehose: {
             streamName: string
@@ -30,10 +31,11 @@ export class ConsentStorageStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: ConsentBannerStackProps) {
         super(scope, id, props)
 
+        const {idPrefix} = props;
         const athenaConfig = props.services.athena;
         const firehoseConfig = props.services.firehose;
 
-        const athena = new AthenaDatabaseResource(this, 'AthenaDatabaseResource', {
+        const athena = new AthenaDatabaseResource(this, `${idPrefix}AthenaDatabaseResource`, {
             storagePathS3: athenaConfig.storagePathS3,
             account: this.account,
             workGroupName: athenaConfig.workGroup,
@@ -44,16 +46,12 @@ export class ConsentStorageStack extends cdk.Stack {
 
         this.bucket = athena.getBucket();
 
-        new DeliveryStreamResource(this, 'DeliveryStreamResource', {
+        new DeliveryStreamResource(this, `${idPrefix}DeliveryStreamResource`, {
             streamInterval: firehoseConfig.streamInterval,
             streamSize: firehoseConfig.streamSize,
             storagePathS3: athenaConfig.storagePathS3,
             bucket: athena.getBucket(),
             streamName: firehoseConfig.streamName
         })
-    }
-
-    getAthenaBucket() {
-        return this.bucket;
     }
 }
