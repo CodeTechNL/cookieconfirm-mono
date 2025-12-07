@@ -33,6 +33,7 @@ type PlatformDatabaseProps = {
 
 export class PlatformDatabaseResource extends Construct {
     private readonly database: IDatabaseInstance;
+    private readonly databaseSecurityGroup: SecurityGroup;
 
     constructor(scope: Construct, id: string, props: PlatformDatabaseProps) {
         super(scope, id);
@@ -43,7 +44,7 @@ export class PlatformDatabaseResource extends Construct {
         const instanceIdentifier = 'cc-cdk-sample-database'
         const databaseName = 'cookieconfirmtest';
 
-        const databaseSecurityGroup = new SecurityGroup(this, "database-SG", {
+        this.databaseSecurityGroup = new SecurityGroup(this, "database-SG", {
             vpc: vpcResource.getVpc(),
             description: "SecurityGroup associated with the MySQL RDS Instance",
             allowAllOutbound: false,
@@ -65,7 +66,7 @@ export class PlatformDatabaseResource extends Construct {
             ),
             maxAllocatedStorage: 250,
             multiAz: false,
-            securityGroups: [databaseSecurityGroup],
+            securityGroups: [this.databaseSecurityGroup],
             vpc: vpcResource.getVpc(),
             vpcSubnets: {
                 subnetGroupName: vpcResource.SUBNET_ISOLATED.name,
@@ -101,7 +102,7 @@ export class PlatformDatabaseResource extends Construct {
         }
 
         allowGroups.forEach((allowGroup) => {
-            databaseSecurityGroup.connections.allowFrom(
+            this.databaseSecurityGroup.connections.allowFrom(
                 allowGroup,
                 Port.tcp(3306)
             );
@@ -110,6 +111,10 @@ export class PlatformDatabaseResource extends Construct {
 
     getDatabase() {
         return this.database;
+    }
+
+    getSecurityGroup(){
+        return this.databaseSecurityGroup;
     }
 
     private getCredentials(prefix: string) {

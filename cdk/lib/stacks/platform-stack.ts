@@ -25,6 +25,7 @@ import { ApplicationType } from '../types/ApplicationType';
 import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
 import { ApplicationProtocol, ListenerAction } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import {JumpboxResource} from "../constructs/Platform/JumpboxResource";
 
 
 interface PlatformAssetsStackProps extends StackProps {
@@ -134,7 +135,7 @@ export class PlatformStack extends Stack {
             allowGroups: [applicationSecurityGroup.getSecurityGroup(), queueTasksSecurityGroup],
             databaseName: `${resourcePrefix}-database`,
             vpcResource,
-            APP_ENV: environment.getEnvironmentVars().APP_ENV
+            APP_ENV: environment.getEnvironmentVars().APP_ENV,
         });
 
         const redisResource = new RedisCacheClusterResource(this, `${idPrefix}RedisCluster`, {
@@ -217,6 +218,11 @@ export class PlatformStack extends Stack {
             stage: environment.getEnvironmentVars().APP_ENV as ApplicationType,
             region,
             prefix: idPrefix
+        })
+
+        new JumpboxResource(this, `${idPrefix}JumpBoxResource`, {
+            vpc: vpcResource.getVpc(),
+            rdsSecurityGroup: db.getSecurityGroup()
         })
     }
 

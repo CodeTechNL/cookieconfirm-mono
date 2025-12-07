@@ -8,6 +8,7 @@ import {PhpImageStack} from "../lib/stacks/php-image-stack";
 import {CookieScannerStack} from "../lib/stacks/cookie-scanner-stack";
 import {ApplicationType} from "../lib/types/ApplicationType";
 import {FoundationStack} from "../lib/stacks/PlatformStack/foundation-stack";
+import {ConsentBannerStack} from "../lib/stacks/consent-banner-stack";
 
 const envResult = dotenv.config({
     path: '../.env',
