@@ -2,11 +2,7 @@ import * as cdk from "aws-cdk-lib"
 import {Construct} from "constructs"
 import {AthenaDatabaseResource} from "../../constructs/ConsentLogs/AthenaDatabaseResource";
 import {StackProps } from "aws-cdk-lib";
-import {Bucket} from "aws-cdk-lib/aws-s3";
 import {DeliveryStreamResource} from "../../constructs/ConsentLogs/Firehose/DeliveryStreamResource";
-import {
-    AthenaDatabaseBucketProcessedResource
-} from "../../constructs/ConsentLogs/S3/AthenaDatabaseBucketProcessedResource";
 
 interface ConsentBannerStackProps extends StackProps {
     idPrefix: string,
@@ -27,7 +23,6 @@ interface ConsentBannerStackProps extends StackProps {
 }
 
 export class ConsentStorageStack extends cdk.Stack {
-    private readonly bucket: Bucket;
     constructor(scope: Construct, id: string, props: ConsentBannerStackProps) {
         super(scope, id, props)
 
@@ -44,7 +39,7 @@ export class ConsentStorageStack extends cdk.Stack {
             tableName: athenaConfig.table
         })
 
-        this.bucket = athena.getBucket();
+        athena.getBucket();
 
         new DeliveryStreamResource(this, `${idPrefix}DeliveryStreamResource`, {
             streamInterval: firehoseConfig.streamInterval,

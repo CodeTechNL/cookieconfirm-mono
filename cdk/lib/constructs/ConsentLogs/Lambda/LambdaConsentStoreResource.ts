@@ -1,7 +1,5 @@
 import {Construct} from "constructs";
-import {
-    Function as LambdaFunction, FunctionUrlAuthType, HttpMethod, Runtime,
-} from "aws-cdk-lib/aws-lambda"
+import {FunctionUrlAuthType, HttpMethod, Runtime} from "aws-cdk-lib/aws-lambda"
 
 import {Bucket} from "aws-cdk-lib/aws-s3";
 import {LogGroup, RetentionDays} from "aws-cdk-lib/aws-logs";
@@ -9,7 +7,6 @@ import {NodejsFunction, OutputFormat} from "aws-cdk-lib/aws-lambda-nodejs";
 import {fromRoot} from "../../../helpers";
 import {Duration, Fn} from "aws-cdk-lib";
 import {PolicyStatement} from "aws-cdk-lib/aws-iam";
-import * as cdk from "aws-cdk-lib";
 
 type LambdaConsentStoreProps = {
     awsAccount: string
@@ -18,9 +15,6 @@ type LambdaConsentStoreProps = {
 }
 
 export class LambdaConsentStoreResource extends Construct {
-
-    public readonly resource: LambdaFunction;
-
     private readonly ingestUrl: string
 
     constructor(scope: Construct, id: string, props: LambdaConsentStoreProps) {
@@ -77,9 +71,5 @@ export class LambdaConsentStoreResource extends Construct {
 
     public getIngestUrl(): string {
         return this.ingestUrl;
-    }
-
-    public getResource():LambdaFunction{
-        return this.resource;
     }
 }
