@@ -1,9 +1,7 @@
 import {Construct} from "constructs";
-import {Bucket, CfnBucket} from "aws-cdk-lib/aws-s3";
-import {CfnWorkGroup, } from "aws-cdk-lib/aws-athena";
-import {CfnDatabase, CfnTable} from "aws-cdk-lib/aws-glue";
+import {Bucket} from "aws-cdk-lib/aws-s3";
+import {CfnTable} from "aws-cdk-lib/aws-glue";
 import {} from "aws-cdk-lib/aws-athena";
-import * as cdk from "aws-cdk-lib";
 
 type CfnTableProps = {
     bucket: Bucket
@@ -13,17 +11,12 @@ type CfnTableProps = {
     storagePathS3: string
 }
 
-export class CfnTableResource extends Construct {
-
-    private readonly resource: CfnTable;
-
+export class AthenaTable extends CfnTable {
     constructor(scope: Construct, id: string, props: CfnTableProps) {
-        super(scope, id);
 
         const {account, databaseName, tableName, bucket, storagePathS3} = props;
 
-
-        this.resource = new CfnTable(this, 'ConsentRequestsTable', {
+        super(scope, id, {
             databaseName: databaseName,
             catalogId: account,
             tableInput: {
@@ -67,16 +60,8 @@ export class CfnTableResource extends Construct {
                     ],
                 },
             },
-        })
+        });
 
-        this.resource.node.addDependency(bucket);
-
-        new cdk.CfnOutput(this, "ConsentLogsTable", {
-            value: `${this.getResource().databaseName}.${tableName}`,
-        })
-    }
-
-    getResource(){
-        return this.resource;
+        this.node.addDependency(bucket);
     }
 }

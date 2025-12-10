@@ -1,25 +1,17 @@
 import {Construct} from "constructs";
-import {Bucket, CfnBucket} from "aws-cdk-lib/aws-s3";
+import {Bucket} from "aws-cdk-lib/aws-s3";
 import {CfnWorkGroup} from "aws-cdk-lib/aws-athena";
-import {CfnDatabase, CfnTable} from "aws-cdk-lib/aws-glue";
 
 type CfnWorkGroupProps = {
     bucket: Bucket
     workGroupName: string
 }
 
-export class CfnWorkGroupResource extends Construct {
-    public table: CfnTable;
-    public bucket: Bucket;
-    public workgroup: CfnWorkGroup;
-    public database: CfnDatabase;
-
+export class AthenaWorkGroup extends CfnWorkGroup {
     constructor(scope: Construct, id: string, props: CfnWorkGroupProps) {
-        super(scope, id);
-
         const { workGroupName, bucket} = props;
 
-        this.workgroup = new CfnWorkGroup(this, "RequestsWorkGroup", {
+        super(scope, id, {
             name: workGroupName,
             workGroupConfiguration: {
                 resultConfiguration: {
@@ -35,6 +27,6 @@ export class CfnWorkGroupResource extends Construct {
             state: "ENABLED",
             description: "WorkGroup for querying Lambda request logs",
             recursiveDeleteOption: true,
-        })
+        });
     }
 }

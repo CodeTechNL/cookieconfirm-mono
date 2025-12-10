@@ -6,23 +6,15 @@ type AthenaDatabaseProps = {
     databaseName: string,
 }
 
-export class CfnDatabaseResource extends Construct {
-    private readonly resource: CfnDatabase;
-
+export class AthenaDatabase extends CfnDatabase {
     constructor(scope: Construct, id: string, props: AthenaDatabaseProps) {
-        super(scope, id);
-
         const {account, databaseName} = props;
 
-        this.resource = new CfnDatabase(this, 'ConsentRequestsDatabase', {
+        super(scope, id, {
             catalogId: account,
             databaseInput: {
                 name: databaseName,
             }
-        })
-    }
-
-    public getResource():CfnDatabase {
-        return this.resource;
+        });
     }
 }
