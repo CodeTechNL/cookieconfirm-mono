@@ -1,12 +1,12 @@
 import {Stack, StackProps} from "aws-cdk-lib"
 import {Construct} from "constructs"
 import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources';
-import {CookieScanRequestSqsResource} from "../../constructs/CookieScanner/Sqs/CookieScanRequestSqsResource";
-import {CookieScannerLambdaContainerResource} from "../../constructs/CookieScanner/Lambda/CookieScannerLambdaContainerResource";
-import {EventConnectionResource} from "../../constructs/CookieScanner/EventBridge/EventConnectionResource";
-import {ApiDestinationResource} from "../../constructs/CookieScanner/EventBridge/ApiDestinationResource";
-import {EventBusResource} from "../../constructs/CookieScanner/EventBridge/EventBusResource";
-import {EventRuleResource} from "../../constructs/CookieScanner/EventBridge/EventRuleResource";
+import {CookieScanQueue} from "../../constructs/Sqs/CookieScanQueue";
+import {CookieScannerFunction} from "../../constructs/Lambda/CookieScannerFunction";
+import {EventConnectionResource} from "../../constructs/EventBridge/EventConnectionResource";
+import {ApiDestinationResource} from "../../constructs/EventBridge/ApiDestinationResource";
+import {EventBusResource} from "../../constructs/EventBridge/EventBusResource";
+import {EventRuleResource} from "../../constructs/EventBridge/EventRuleResource";
 import {EnvironmentResource} from "../../constructs/Platform/EnvironmentResource";
 
 interface CookieScannerStackProps extends StackProps {
@@ -21,7 +21,7 @@ export class CookieScannerSetupStack extends Stack {
         const environmentVariables = props.environmentVariables.getEnvironmentVars();
 
         const {idPrefix} = props;
-        const queue = new CookieScanRequestSqsResource(this, `${idPrefix}CookieScannerQueue`, {
+        const queue = new CookieScanQueue(this, `${idPrefix}CookieScannerQueue`, {
             queueName: environmentVariables.SCANNER_QUEUE_NAME
         })
 
@@ -39,7 +39,7 @@ export class CookieScannerSetupStack extends Stack {
             endpoint: environmentVariables.SCANNER_WEBHOOK_POST_ENDPOINT,
         })
 
-        const lambdaFunction = new CookieScannerLambdaContainerResource(this, `${idPrefix}CookiesLambdaFunction`, {
+        const lambdaFunction = new CookieScannerFunction(this, `${idPrefix}CookiesLambdaFunction`, {
             bus: environmentVariables.SCANNER_EVENT_BRIDGE_EVENT_BUS_NAME,
             eventDetail: environmentVariables.SCANNER_EVENT_BRIDGE_EVENT_DETAIL_TYPE,
             eventSource: environmentVariables.SCANNER_EVENT_BRIDGE_EVENT_SOURCE_NAME

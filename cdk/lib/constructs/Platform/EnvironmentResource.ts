@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { EnvironmentVariablesInterface } from '../../interfaces/EnvironmentVariablesInterface';
+import { DefaultEnvironmentVariablesInterface } from '../../interfaces/DefaultEnvironmentVariablesInterface';
 
 interface EnvironmentResourceProps {
     idPrefix: string;
@@ -8,9 +8,9 @@ interface EnvironmentResourceProps {
 }
 
 export class EnvironmentResource extends Construct {
-    private readonly environmentVars: EnvironmentVariablesInterface;
+    private readonly environmentVars: DefaultEnvironmentVariablesInterface;
 
-    private keys : (keyof EnvironmentVariablesInterface)[] = [
+    private keys : (keyof DefaultEnvironmentVariablesInterface)[] = [
         'APP_KEY',
         'APP_ENV',
         'DB_PASSWORD',
@@ -67,6 +67,19 @@ export class EnvironmentResource extends Construct {
         'SCANNER_EVENT_BRIDGE_EVENT_DETAIL_TYPE',
         'SCANNER_EVENT_BRIDGE_EVENT_SOURCE_NAME',
         'SCANNER_EVENT_BRIDGE_EVENT_BUS_NAME',
+
+        'ATHENA_CONSENT_LOGS_STORAGE_PATH_S3',
+        'ATHENA_CONSENT_LOGS_WORK_GROUP',
+        'ATHENA_CONSENT_LOGS_RAW_BUCKET',
+        'ATHENA_CONSENT_LOGS_DATABASE',
+        'ATHENA_CONSENT_LOGS_TABLE',
+
+        'FIREHOSE_CONSENT_LOGS_STREAM',
+        'FIREHOSE_CONSENT_LOGS_STREAM_INTERVAL',
+        'FIREHOSE_CONSENT_LOGS_STREAM_SIZE',
+        'CLOUDFRONT_SUBDOMAIN',
+        'S3_BANNER_COMPONENTS_BUCKET',
+        'S3_BANNER_ASSETS_BUCKET'
     ];
 
     constructor(scope: Construct, id: string, props: EnvironmentResourceProps) {
@@ -84,25 +97,24 @@ export class EnvironmentResource extends Construct {
         this.environmentVars = vars;
     }
 
-    public getEnvironmentVars(): (EnvironmentVariablesInterface) {
+    public getEnvironmentVars(): (DefaultEnvironmentVariablesInterface) {
         return this.environmentVars;
     }
 
-    private getEnvObject(prefix: string): EnvironmentVariablesInterface {
-        const out = {} as EnvironmentVariablesInterface;
+    private getEnvObject(prefix: string): DefaultEnvironmentVariablesInterface {
+        const out = {} as DefaultEnvironmentVariablesInterface;
 
         this.keys.forEach((key) => {
-            out[key] = StringParameter.fromStringParameterName(
+            out[key] = StringParameter.valueForStringParameter(
                 this,
-                `${prefix}-${key}`,
-                `/${prefix}/${key}`,
-            ).stringValue;
+                `/${prefix}/${key}`
+            );
         });
 
         return out;
     }
 
-    public append(key: (keyof EnvironmentVariablesInterface), value: string) {
+    public append(key: (keyof DefaultEnvironmentVariablesInterface), value: string) {
         this.environmentVars[key] = value;
 
         return this;

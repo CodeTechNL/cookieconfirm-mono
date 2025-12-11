@@ -1,4 +1,6 @@
 import * as path from "path"
+import {App} from "aws-cdk-lib";
+import {ApplicationType} from "./types/ApplicationType";
 
 export const fromRoot = (...paths: string[]) => path.join(__dirname, "../../", ...paths)
 
@@ -27,4 +29,24 @@ export const uuid = ():string=> {
         const v = c === 'x' ? r : (r & 0x3 | 0x8); // variant bits
         return v.toString(16);
     });
+}
+
+export const getIdPrefix = (app: App): string => {
+    const company = app.node.tryGetContext('company') || 'cookie-confirm'
+    const stage = app.node.tryGetContext('stage') || 'staging' as ApplicationType;
+    return toPascalCase(company) + toPascalCase(stage)
+}
+
+export const getResourcePrefix = (app: App) : string => {
+    const company = app.node.tryGetContext('company') || 'cookie-confirm'
+    const stage = app.node.tryGetContext('stage') || 'staging' as ApplicationType;
+
+    return `${company}-${stage}`;
+}
+
+export const getAwsEnv = () : {region: string, account: string} => {
+    return {
+        region: process.env.CDK_DEFAULT_REGION!,
+        account: process.env.CDK_DEFAULT_ACCOUNT!,
+    };
 }

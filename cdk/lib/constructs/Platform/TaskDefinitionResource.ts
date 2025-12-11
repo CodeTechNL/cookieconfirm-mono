@@ -9,7 +9,7 @@ import {
 } from 'aws-cdk-lib/aws-ecs';
 import {Role} from "aws-cdk-lib/aws-iam";
 import {DockerImageAsset} from "aws-cdk-lib/aws-ecr-assets";
-import {EnvironmentVariablesInterface} from "../../interfaces/EnvironmentVariablesInterface";
+import {DefaultEnvironmentVariablesInterface} from "../../interfaces/DefaultEnvironmentVariablesInterface";
 import {LogGroup} from "aws-cdk-lib/aws-logs";
 
 type TaskDefinitionProps = {
@@ -38,7 +38,7 @@ export class TaskDefinitionResource extends Construct {
         })
     }
 
-    addInitContainer(image: DockerImageAsset, environment: EnvironmentVariablesInterface, logGroup: LogGroup) {
+    addInitContainer(image: DockerImageAsset, environment: DefaultEnvironmentVariablesInterface, logGroup: LogGroup) {
         return this.taskDefinition.addContainer('init-migrate', {
             essential: false,
             image: ContainerImage.fromDockerImageAsset(image),
@@ -50,7 +50,7 @@ export class TaskDefinitionResource extends Construct {
         });
     }
 
-    addApplicationContainer(image: DockerImageAsset, environment: EnvironmentVariablesInterface, applicationLogGroup: LogGroup, initContainer: ContainerDefinition) {
+    addApplicationContainer(image: DockerImageAsset, environment: DefaultEnvironmentVariablesInterface, applicationLogGroup: LogGroup, initContainer: ContainerDefinition) {
         const applicationContainer = this.taskDefinition.addContainer('app-container', {
             cpu: 256,
             environment,

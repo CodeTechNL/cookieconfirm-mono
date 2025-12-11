@@ -1,106 +1,124 @@
-import {Duration, Stack, StackProps} from "aws-cdk-lib"
+import {Stack, StackProps} from "aws-cdk-lib"
 import {Construct} from "constructs"
-import {ConsentStorageStack} from "./ConsentBannerStacks/consent-storage-stack";
-import {FrontendBannerStack} from "./ConsentBannerStacks/frontend-banner-stack";
+import {AthenaConsentStore} from "../patterns/AthenaConsentStore";
+import {DeliveryStream} from "../patterns/DeliveryStream";
+import {LambdaConsentStoreResource} from "../constructs/Lambda/LambdaConsentStoreResource";
+import {UploadBannerScripts} from "../constructs/S3/StaticFiles/UploadBannerScripts";
+import {UploadLocalhostBannerComponents} from "../constructs/S3/StaticFiles/UploadLocalhostBannerComponents";
+import {EnvironmentResource} from "../constructs/Platform/EnvironmentResource";
+import {JavaScriptAssetsBucket} from "../constructs/S3/JavaScriptAssetsBucket";
+import {BannerComponentsBucket} from "../constructs/S3/BannerComponentsBucket";
+import {FifteenMinutesCachePolicy} from "../constructs/Cloudfront/CachePolicies/FifteenMinutesCachePolicy";
+import {OneDayCachePolicy} from "../constructs/Cloudfront/CachePolicies/OneDayCachePolicy";
+import {OneYearCachePolicy} from "../constructs/Cloudfront/CachePolicies/OneYearCachePolicy";
+import {CloudfrontDistribution} from "../constructs/Cloudfront/CloudfrontDistribution";
+import {Certificate} from "aws-cdk-lib/aws-certificatemanager";
+import {StringParameter} from "aws-cdk-lib/aws-ssm";
+
 
 interface ConsentBannerStackProps extends StackProps {
     idPrefix: string;
-    app: {
-        url: string;
-        cdnUrl: string;
-    },
-    aws: {
-        region: string;
-        account: string
-    },
-    services: {
-        cloudfront: {
-            certificateArn: string
-            hostedZoneDomain: string,
-            recordName: string
-        },
-        firehose: {
-            streamName: string
-            streamInterval: number,
-            streamSize: number,
-        },
-        s3: {
-            jsonFilesBucketName: string
-            javascriptBucketName: string
-        },
-        athena: {
-            athenaConsentLogBucket: string
-            table: string
-            database: string
-            workGroup: string
-            storagePathS3: string
-        }
-    }
+    environment: EnvironmentResource,
 }
 
 export class ConsentBannerStack extends Stack {
     constructor(scope: Construct, id: string, props: ConsentBannerStackProps) {
         super(scope, id, props)
 
-        const {idPrefix} = props;
-        const app = props.app;
-        const athenaConfig = props.services.athena
-        const firehoseConfig = props.services.firehose
-        const awsConfig = props.aws
-        const s3Config = props.services.s3
-        const cloudfrontConfig = props.services.cloudfront;
+        const {idPrefix, environment} = props;
 
-        const consentBannerStack = new ConsentStorageStack(this, `${idPrefix}ConsentBannerStack`, {
+        const config = environment.getEnvironmentVars();
+
+        console.log(config)
+
+        // config.CLOUDFRONT_CERTIFICATE_ARN = 'arn:aws:acm:us-east-1:585008041582:certificate/7aded256-00a4-4243-ae46-3545a6a58e58';
+
+        const athena = new AthenaConsentStore(this, `${idPrefix}AthenaDatabaseResource`, {
             idPrefix,
-            services: {
-                athena: {
-                    workGroup: athenaConfig.workGroup,
-                    rawBucket: athenaConfig.athenaConsentLogBucket,
-                    database: athenaConfig.database,
-                    table: athenaConfig.table,
-                    storagePathS3: athenaConfig.storagePathS3
-                },
-                firehose: {
-                    streamName: firehoseConfig.streamName,
-                    streamInterval: firehoseConfig.streamInterval,
-                    streamSize: firehoseConfig.streamSize
-                },
-            },
-            env: {
-                region: awsConfig.region,
-                account: awsConfig.account,
-            },
-        });
+            storagePathS3: config.ATHENA_CONSENT_LOGS_STORAGE_PATH_S3, // athenaConfig.storagePathS3,
+            account: this.account,
+            workGroupName: config.ATHENA_CONSENT_LOGS_WORK_GROUP, // athenaConfig.workGroup,
+            bucketName: config.ATHENA_CONSENT_LOGS_RAW_BUCKET, // athenaConfig.rawBucket,
+            databaseName: config.ATHENA_CONSENT_LOGS_DATABASE, // athenaConfig.database,
+            tableName: config.ATHENA_CONSENT_LOGS_TABLE, // athenaConfig.table
+        })
 
-        const cloudfrontStack = new FrontendBannerStack(this, `${idPrefix}CloudfrontDistributionStack`, {
+        new DeliveryStream(this, `${idPrefix}DeliveryStreamResource`, {
             idPrefix,
-            app: {
-                url: app.url,
-                cdnUrl: app.cdnUrl
-            },
-            services: {
-                cloudfront: {
-                    certificateArn: cloudfrontConfig.certificateArn,
-                    hostedZoneDomain: cloudfrontConfig.hostedZoneDomain,
-                    recordName: cloudfrontConfig.recordName
-                },
-                firehose: {
-                    streamName: firehoseConfig.streamName,
-                },
-                athena: {
-                    athenaConsentLogBucket: athenaConfig.athenaConsentLogBucket,
-                },
-                s3: {
-                    jsonFilesBucketName: s3Config.jsonFilesBucketName,
-                    javascriptBucketName: s3Config.javascriptBucketName,
-                },
-            },
-            env: {
-                region: awsConfig.region,
-                account: awsConfig.account,
-            },
-        });
+            streamInterval: parseInt(config.FIREHOSE_CONSENT_LOGS_STREAM_INTERVAL), // firehoseConfig.streamInterval,
+            streamSize: parseInt(config.FIREHOSE_CONSENT_LOGS_STREAM_SIZE), // firehoseConfig.streamSize,
+            storagePathS3: config.ATHENA_CONSENT_LOGS_STORAGE_PATH_S3, // athenaConfig.storagePathS3,
+            bucket: athena.getAthenaBucket(),
+            streamName: config.FIREHOSE_CONSENT_LOGS_STREAM, // firehoseConfig.streamName
+        })
 
-        consentBannerStack.addDependency(cloudfrontStack);
+        /**
+         * Bucket for storing the JavaScript files
+         */
+        const javascriptBucket = new JavaScriptAssetsBucket(this, `${idPrefix}JavascriptAssetsBucket`, {
+            bucketName: config.S3_BANNER_ASSETS_BUCKET,
+            description: "Bucket to store the banner javascript"
+        })
+
+        /**
+         * Bucket for storing the consent banner assets
+         */
+        const jsonFilesBucket = new BannerComponentsBucket(this, `${idPrefix}BannerComponentsBucket`, {
+            bucketName: config.S3_BANNER_COMPONENTS_BUCKET
+        })
+
+        const arn = StringParameter.valueForStringParameter(
+            this,
+            `/${idPrefix}/CLOUDFRONT_CERTIFICATE_ARN`,
+        );
+
+        const certificate = Certificate.fromCertificateArn(
+                this,
+                "Certificate",
+                arn
+            );
+
+        const cdnDistribution = new CloudfrontDistribution(this, 'SiteDistribution', {
+            certificate,
+            domainNames: [
+                config.CLOUDFRONT_ASSETS_DOMAIN,
+            ],
+            origin: javascriptBucket.getOrigin()
+        })
+
+        // new CloudfrontDomainSetup(this, `${idPrefix}CloudfrontDomainSetup`, {
+        //     hostedZoneDomain: config.APP_MAIN_DOMAIN,
+        //     recordName: config.APP_SUBDOMAIN, // maakt banner.cookieconfirm.com
+        //     distribution: cdnDistribution
+        // });
+
+        const consentFunction = new LambdaConsentStoreResource(this, `${idPrefix}LambdaConsentStoreResource`, {
+            awsAccount: this.account,
+            bucketName: config.ATHENA_CONSENT_LOGS_RAW_BUCKET,
+            streamName: config.FIREHOSE_CONSENT_LOGS_STREAM
+        })
+
+        const fifteenMinuteCache = new FifteenMinutesCachePolicy(this, `${idPrefix}FifteenMinutesCachePolicy`);
+        const oneDayCachePolicy = new OneDayCachePolicy(this, `${idPrefix}OneDayCachePolicy`);
+        const oneYearCachePolicy = new OneYearCachePolicy(this, `${idPrefix}OneYearCachePolicy`);
+
+        cdnDistribution
+            // Cache for 15 minutes as this init file contains a version and changes
+            .addInitJsonBehavior('/banner/*/init.json',jsonFilesBucket.getOrigin(), fifteenMinuteCache)
+            // The banner files can be cached forever as they will be busted by a version which is received out of the init.json
+            .addDefaultBehavior('/banner/*', jsonFilesBucket.getOrigin(), oneYearCachePolicy)
+            .addConsentStorageBehavior("/api/v1/store-consent", consentFunction.getIngestUrl())
+            .addDefaultBehavior('/js/*', javascriptBucket.getOrigin(), fifteenMinuteCache)
+            .addDefaultBehavior('/images/*', javascriptBucket.getOrigin(), oneDayCachePolicy);
+
+        new UploadBannerScripts(this, 'UploadBannerResource', {
+            destinationBucket: javascriptBucket,
+            distribution: cdnDistribution
+        })
+
+        new UploadLocalhostBannerComponents(this, 'UploadLocalhostBannerResource', {
+            destinationBucket: jsonFilesBucket,
+            distribution: cdnDistribution
+        })
     }
 }
