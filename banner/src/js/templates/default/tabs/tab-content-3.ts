@@ -1,4 +1,4 @@
-import { AbstractLayout } from '@/js/templates/default/components/abstract-layout'
+import { AbstractLayout } from "@/js/templates/default/components/abstract-layout";
 
 export class TabContent3 extends AbstractLayout {
   render(): string {
@@ -13,6 +13,6 @@ export class TabContent3 extends AbstractLayout {
           <span class="consent-id-label">Consent ID:</span> <span id="consent-id">${this.consentId}</span>
       </div>
   </div>
-    `
+    `;
   }
 }

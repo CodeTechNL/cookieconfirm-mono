@@ -1,1 +1,1 @@
-export type ApplicationType = 'production' | 'development' | 'staging';
+export type ApplicationType = "production" | "development" | "staging";

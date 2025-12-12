@@ -1,12 +1,12 @@
 #!/usr/bin/env ts-node
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
-import dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
-import { loadAndMergeEnvFiles } from './utils/env.js';
-import { createSsmClient, fetchSsmParametersByPrefix, putSsmParameter } from './utils/ssm.js';
-import { renderOverviewTable, renderPlannedChangesTable, OverviewRow, PlannedChangeRow, RowStatus } from './utils/table.js';
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+import { loadAndMergeEnvFiles } from "./utils/env.js";
+import { createSsmClient, fetchSsmParametersByPrefix, putSsmParameter } from "./utils/ssm.js";
+import { renderOverviewTable, renderPlannedChangesTable, OverviewRow, PlannedChangeRow, RowStatus } from "./utils/table.js";
 import {
   promptCompanyName,
   promptEnvFiles,
@@ -17,9 +17,9 @@ import {
   promptSearchTerm,
   promptSelectVariablesWithChoices,
   promptNewValue,
-} from './utils/prompts.js';
-import { ENV_FILES } from './config/env-files.js';
-import chalk from 'chalk';
+} from "./utils/prompts.js";
+import { ENV_FILES } from "./config/env-files.js";
+import chalk from "chalk";
 
 type Args = {
   write?: boolean;
@@ -41,11 +41,11 @@ function compareMaps(envMap: Record<string, string>, ssmMap: Record<string, stri
     const ssm = ssmMap[key];
     let status: RowStatus;
     if (env !== undefined && ssm !== undefined) {
-      status = env === ssm ? 'same' : 'diff';
+      status = env === ssm ? "same" : "diff";
     } else if (env !== undefined) {
-      status = 'only-env';
+      status = "only-env";
     } else {
-      status = 'only-ssm';
+      status = "only-ssm";
     }
     rows.push({ key, env, ssm, status });
   }
@@ -61,8 +61,8 @@ function displayPrefixFor(companyName: string, stage: Stage): string {
 async function main() {
   // Load .env so AWS_PROFILE (and others) are available to the SDK
   // Prefer repository root .env (two levels up) and fall back to local .env
-  const rootEnvPath = path.resolve(process.cwd(), '../../.env');
-  const localEnvPath = path.resolve(process.cwd(), '.env');
+  const rootEnvPath = path.resolve(process.cwd(), "../../.env");
+  const localEnvPath = path.resolve(process.cwd(), ".env");
   if (fs.existsSync(rootEnvPath)) {
     dotenv.config({ path: rootEnvPath });
   } else if (fs.existsSync(localEnvPath)) {
@@ -71,19 +71,19 @@ async function main() {
     dotenv.config();
   }
 
-  const argv = (yargs(hideBin(process.argv))
-    .option('write', {
-      type: 'boolean',
+  const argv = yargs(hideBin(process.argv))
+    .option("write", {
+      type: "boolean",
       default: false,
-      describe: 'Voer werkelijk wijzigingen uit (zonder deze flag is het een dry-run)',
+      describe: "Voer werkelijk wijzigingen uit (zonder deze flag is het een dry-run)",
     })
-    .option('debug', {
-      type: 'boolean',
+    .option("debug", {
+      type: "boolean",
       default: false,
-      describe: 'Toon extra debug-informatie (zoals gebruikte/geplande SSM-keys)',
+      describe: "Toon extra debug-informatie (zoals gebruikte/geplande SSM-keys)",
     })
     .help()
-    .parseSync() as Args);
+    .parseSync() as Args;
 
   const companyName = await promptCompanyName();
   const stage = await promptStage();
@@ -101,9 +101,9 @@ async function main() {
     const usedKeys = Object.keys(ssmMap)
       .sort()
       .map((k) => `/${displayPrefix}/${k}`);
-    console.log(`\n${chalk.bgMagenta.black(' DEBUG ')} ${chalk.magenta('SSM keys opgehaald (gebruikt):')}`);
+    console.log(`\n${chalk.bgMagenta.black(" DEBUG ")} ${chalk.magenta("SSM keys opgehaald (gebruikt):")}`);
     if (usedKeys.length === 0) {
-      console.log(chalk.dim('  (geen keys gevonden onder prefix)')); 
+      console.log(chalk.dim("  (geen keys gevonden onder prefix)"));
     } else {
       usedKeys.forEach((k) => console.log(chalk.dim(`  - ${k}`)));
     }
@@ -130,12 +130,12 @@ async function main() {
     }
     const perFileRows = compareMaps(singleEnv, ssmSubset) as OverviewRow[];
     const label = labelByPath.get(filePath) ?? filePath;
-    const header = `${chalk.bold('Overzicht voor')}: ${label}`;
+    const header = `${chalk.bold("Overzicht voor")}: ${label}`;
     console.log(`\n${chalk.bgCyan.black(` ${header} `)}`);
     if (perFileRows.length > 0) {
       console.log(renderOverviewTable(perFileRows));
     } else {
-      console.log(chalk.dim('(Geen variabelen gevonden in dit bestand)'));
+      console.log(chalk.dim("(Geen variabelen gevonden in dit bestand)"));
     }
   }
 
@@ -149,12 +149,12 @@ async function main() {
     // Basisplan: alleen nieuwe variabelen (only-env) automatisch als create met ENV-waarde
     const plannedMap = new Map<string, PlannedChangeRow>();
     for (const row of overview) {
-      if (row.status === 'only-env' && row.env !== undefined) {
+      if (row.status === "only-env" && row.env !== undefined) {
         plannedMap.set(row.key, {
           key: row.key,
           from: undefined,
           to: row.env,
-          action: 'create',
+          action: "create",
         });
       }
     }
@@ -165,14 +165,10 @@ async function main() {
     while (true) {
       const term = await promptSearchTerm();
       const pool = overview
-        .filter((r) =>
-          term.length === 0
-            ? true
-            : r.key.toLowerCase().includes(term.toLowerCase()),
-        )
+        .filter((r) => (term.length === 0 ? true : r.key.toLowerCase().includes(term.toLowerCase())))
         .sort((a, b) => a.key.localeCompare(b.key));
       if (pool.length === 0) {
-        console.log(chalk.yellow('Geen resultaten voor deze zoekterm. Probeer opnieuw of laat leeg voor alle variabelen.'));
+        console.log(chalk.yellow("Geen resultaten voor deze zoekterm. Probeer opnieuw of laat leeg voor alle variabelen."));
         continue;
       }
       visible = pool;
@@ -202,7 +198,7 @@ async function main() {
           key: row.key,
           from: undefined,
           to: newVal,
-          action: 'create',
+          action: "create",
         });
       } else if (newVal !== row.ssm) {
         // bestaande sleutel -> update alleen als afwijkend van huidige SSM
@@ -210,7 +206,7 @@ async function main() {
           key: row.key,
           from: row.ssm,
           to: newVal,
-          action: 'update',
+          action: "update",
         });
       } else {
         // gelijk aan huidige SSM -> geen wijziging nodig; verwijder eventuele bestaande plan entry
@@ -221,10 +217,10 @@ async function main() {
     const planned = Array.from(plannedMap.values()).sort((a, b) => a.key.localeCompare(b.key));
 
     if (planned.length === 0) {
-      console.log(chalk.green('Geen wijzigingen gepland. Het script wordt afgesloten.'));
+      console.log(chalk.green("Geen wijzigingen gepland. Het script wordt afgesloten."));
       return; // niets te doen -> direct afsluiten zoals gevraagd
     } else {
-      console.log(`\n${chalk.bold.green('Geplande wijzigingen:')}`);
+      console.log(`\n${chalk.bold.green("Geplande wijzigingen:")}`);
       console.log(renderPlannedChangesTable(planned));
     }
 
@@ -239,69 +235,71 @@ async function main() {
 
       // Bepaal aantallen voor samenvatting
       const finalOverview = compareMaps(envMap, latestSsmMap);
-      const unchangedCount = finalOverview.filter((r) => r.status === 'same').length;
-      const newCount = finalPlan.filter((p) => p.action === 'create').length;
-      const changedCount = finalPlan.filter((p) => p.action === 'update').length;
+      const unchangedCount = finalOverview.filter((r) => r.status === "same").length;
+      const newCount = finalPlan.filter((p) => p.action === "create").length;
+      const changedCount = finalPlan.filter((p) => p.action === "update").length;
 
       // Toon samenvatting vóór definitieve verzending
-      console.log(`\n${chalk.bgBlue.white(' SAMENVATTING VOOR VERZENDEN ')}`);
-      console.log(`${chalk.bold('Key prefix:')} ${chalk.cyan(`/${displayPrefix}/<KEY>`)} `);
-      console.log(`${chalk.bold('Region:')} ${chalk.yellow(region)}`);
-      console.log(`${chalk.bold('Nieuwe variabelen:')} ${chalk.green(String(newCount))}`);
-      console.log(`${chalk.bold('Gewijzigde variabelen:')} ${chalk.yellow(String(changedCount))}`);
-      console.log(`${chalk.bold('Ongewijzigde variabelen:')} ${chalk.dim(String(unchangedCount))}`);
+      console.log(`\n${chalk.bgBlue.white(" SAMENVATTING VOOR VERZENDEN ")}`);
+      console.log(`${chalk.bold("Key prefix:")} ${chalk.cyan(`/${displayPrefix}/<KEY>`)} `);
+      console.log(`${chalk.bold("Region:")} ${chalk.yellow(region)}`);
+      console.log(`${chalk.bold("Nieuwe variabelen:")} ${chalk.green(String(newCount))}`);
+      console.log(`${chalk.bold("Gewijzigde variabelen:")} ${chalk.yellow(String(changedCount))}`);
+      console.log(`${chalk.bold("Ongewijzigde variabelen:")} ${chalk.dim(String(unchangedCount))}`);
 
       // Debug: toon alle SSM keys die we gaan gebruiken (schrijven)
       if (argv.debug) {
         const plannedKeys = finalPlan.map((c) => `/${displayPrefix}/${c.key}`).sort();
-        console.log(`\n${chalk.bgMagenta.black(' DEBUG ')} ${chalk.magenta('SSM keys gepland (schrijven):')}`);
+        console.log(`\n${chalk.bgMagenta.black(" DEBUG ")} ${chalk.magenta("SSM keys gepland (schrijven):")}`);
         if (plannedKeys.length === 0) {
-          console.log(chalk.dim('  (geen geplande wijzigingen)'));
+          console.log(chalk.dim("  (geen geplande wijzigingen)"));
         } else {
           plannedKeys.forEach((k) => console.log(chalk.dim(`  - ${k}`)));
         }
       }
 
       // Laatste bevestiging om definitief te verzenden of proces te herstarten
-      const { promptFinalConfirm } = await import('./utils/prompts.js');
+      const { promptFinalConfirm } = await import("./utils/prompts.js");
       const finalConfirm = await promptFinalConfirm();
       if (!finalConfirm) {
-        console.log(chalk.yellow('Proces wordt opnieuw gestart. Pas je selectie/waarden aan.'));
+        console.log(chalk.yellow("Proces wordt opnieuw gestart. Pas je selectie/waarden aan."));
         continue; // terug naar begin van de while-loop
       }
       // anders: definitief, breek uit de loop om dry-run preview of write uit te voeren
       break;
     }
-    console.log(chalk.yellow('Niet akkoord. We gaan opnieuw de overrides selecteren...'));
+    console.log(chalk.yellow("Niet akkoord. We gaan opnieuw de overrides selecteren..."));
   }
 
   if (!argv.write) {
     // Toon altijd duidelijk welke volledige SSM-keys en waarden zouden worden geschreven
-    console.log(`\n${chalk.bold.cyan('Dry-run preview:')} ${chalk.dim('de volgende parameters zouden worden geschreven:')}`);
+    console.log(`\n${chalk.bold.cyan("Dry-run preview:")} ${chalk.dim("de volgende parameters zouden worden geschreven:")}`);
     if (finalPlan.length === 0) {
-      console.log(chalk.dim('  (geen geplande wijzigingen)'));
+      console.log(chalk.dim("  (geen geplande wijzigingen)"));
     } else {
       for (const change of finalPlan) {
         const fullKey = `/${displayPrefix}/${change.key}`;
-        const tag = change.action === 'create' ? chalk.green('CREATE') : chalk.yellow('UPDATE');
-        const from = change.from !== undefined ? chalk.dim(` from ${change.from}`) : '';
-        console.log(`  ${tag} ${chalk.cyan(fullKey)}${from} ${chalk.dim('=>')} ${chalk.bold(change.to)}`);
+        const tag = change.action === "create" ? chalk.green("CREATE") : chalk.yellow("UPDATE");
+        const from = change.from !== undefined ? chalk.dim(` from ${change.from}`) : "";
+        console.log(`  ${tag} ${chalk.cyan(fullKey)}${from} ${chalk.dim("=>")} ${chalk.bold(change.to)}`);
       }
     }
-    console.log(`\n${chalk.yellow('Dry-run:')} ${chalk.dim('geen wijzigingen naar SSM geschreven. Voeg')} ${chalk.bold('--write')} ${chalk.dim('toe om te schrijven.')}`);
+    console.log(
+      `\n${chalk.yellow("Dry-run:")} ${chalk.dim("geen wijzigingen naar SSM geschreven. Voeg")} ${chalk.bold("--write")} ${chalk.dim("toe om te schrijven.")}`,
+    );
     return;
   }
 
   for (const change of finalPlan) {
     const name = `${ssmPathPrefix}/${change.key}`;
-    await putSsmParameter(client, name, change.to, 'String');
-    const tag = change.action === 'create' ? chalk.green('CREATE') : chalk.yellow('UPDATE');
+    await putSsmParameter(client, name, change.to, "String");
+    const tag = change.action === "create" ? chalk.green("CREATE") : chalk.yellow("UPDATE");
     console.log(`${tag}: ${chalk.cyan(`/${displayPrefix}/${change.key}`)}`);
   }
-  console.log(chalk.bold.green('Klaar.'));
+  console.log(chalk.bold.green("Klaar."));
 }
 
 main().catch((err) => {
-  console.error(chalk.red('Fout:'), err);
+  console.error(chalk.red("Fout:"), err);
   process.exit(1);
 });

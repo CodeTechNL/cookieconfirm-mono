@@ -14,5 +14,5 @@ export const arrowIcon = (className: string) => {
     /></svg
 >
 
-    `
-}
+    `;
+};

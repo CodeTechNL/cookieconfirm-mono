@@ -1,4 +1,4 @@
-import { AbstractLayout } from '@/js/templates/default/components/abstract-layout'
+import { AbstractLayout } from "@/js/templates/default/components/abstract-layout";
 
 export class TabContent1 extends AbstractLayout {
   render(): string {
@@ -11,6 +11,6 @@ export class TabContent1 extends AbstractLayout {
         </p>
     </div>
 </div>
-      `
+      `;
   }
 }

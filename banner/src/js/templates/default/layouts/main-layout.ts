@@ -1,8 +1,8 @@
-import { AbstractLayout } from '@/js/templates/default/components/abstract-layout'
-import Header from '@/js/templates/default/layouts/header'
-import { Navigation } from '@/js/templates/default/layouts/navigation'
-import Content from '@/js/templates/default/layouts/content'
-import Footer from '@/js/templates/default/layouts/footer'
+import { AbstractLayout } from "@/js/templates/default/components/abstract-layout";
+import Header from "@/js/templates/default/layouts/header";
+import { Navigation } from "@/js/templates/default/layouts/navigation";
+import Content from "@/js/templates/default/layouts/content";
+import Footer from "@/js/templates/default/layouts/footer";
 
 export class MainLayout extends AbstractLayout {
   render(): string {
@@ -22,22 +22,12 @@ export class MainLayout extends AbstractLayout {
 
             <!-- Tabs Navigation -->
             <div class="tab-navigation">
-                ${new Navigation(
-                  this.translations,
-                  this.banner,
-                  this.cookies,
-                  this.consentId,
-                ).render()}
+                ${new Navigation(this.translations, this.banner, this.cookies, this.consentId).render()}
             </div>
 
             <!-- Tab Contents -->
             <div class="tab-contents">
-                ${new Content(
-                  this.translations,
-                  this.banner,
-                  this.cookies,
-                  this.consentId,
-                ).render()}
+                ${new Content(this.translations, this.banner, this.cookies, this.consentId).render()}
             </div>
 
             <!-- Banner Footer -->
@@ -48,12 +38,12 @@ export class MainLayout extends AbstractLayout {
     </div>
 </div>
 
-    `
+    `;
   }
 
   hasCustomizeSelection() {
-    const hasButton = this.banner.functional.customizeSelectionButton
+    const hasButton = this.banner.functional.customizeSelectionButton;
 
-    return hasButton ? `has-customize-selection` : ``
+    return hasButton ? `has-customize-selection` : ``;
   }
 }

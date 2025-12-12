@@ -1,3 +1,3 @@
 export const mountElement = (html: string) => {
-  document.body.innerHTML = html
-}
+  document.body.innerHTML = html;
+};

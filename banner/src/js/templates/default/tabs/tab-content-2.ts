@@ -1,16 +1,12 @@
-import {
-  CookieCategoryDataInterface,
-  CookieControllerDataInterface,
-  CookieDataInterface,
-} from '@/js/app/interfaces/CookieDataInterfaces'
-import { arrowIcon } from '@/js/templates/default/components/arrow-icon'
-import { toggle } from '@/js/templates/default/components/toggle'
-import { AbstractLayout } from '@/js/templates/default/components/abstract-layout'
-import { ClassificationTypes, ConsentTypes } from '@/js/app/types'
+import { CookieCategoryDataInterface, CookieControllerDataInterface, CookieDataInterface } from "@/js/app/interfaces/CookieDataInterfaces";
+import { arrowIcon } from "@/js/templates/default/components/arrow-icon";
+import { toggle } from "@/js/templates/default/components/toggle";
+import { AbstractLayout } from "@/js/templates/default/components/abstract-layout";
+import { ClassificationTypes, ConsentTypes } from "@/js/app/types";
 
 export class TabContent2 extends AbstractLayout {
   showToggle(type: ClassificationTypes) {
-    return type !== 'unclassified'
+    return type !== "unclassified";
   }
 
   getCard(category: ClassificationTypes, cookieInformation: CookieCategoryDataInterface) {
@@ -23,13 +19,13 @@ export class TabContent2 extends AbstractLayout {
               <div class="flex-between">
                     <span class="text-bold-flex pointer open-cookie-controllers">
                       <span class="accordion-icon-toggle" tabindex="0">
-                              ${arrowIcon('accordion-icon')}
+                              ${arrowIcon("accordion-icon")}
                     </span>
                         <span>${cookieInformation.title}</span>
                       <span class="badge">(${cookieInformation.total_cookies})</span>
                     </span>
   
-                  ${this.showToggle(category) ? toggle(category, category !== 'functional') : ``}
+                  ${this.showToggle(category) ? toggle(category, category !== "functional") : ``}
   
               </div>
               <p class="mt-4">
@@ -54,31 +50,28 @@ export class TabContent2 extends AbstractLayout {
 </div>
 </div>
    
-    `
+    `;
   }
 
-  getAccordionContent(
-    category: ClassificationTypes,
-    controllers: Record<string, CookieControllerDataInterface>,
-  ): string {
-    const keys = Object.keys(controllers)
-    let html = ``
+  getAccordionContent(category: ClassificationTypes, controllers: Record<string, CookieControllerDataInterface>): string {
+    const keys = Object.keys(controllers);
+    let html = ``;
 
     if (keys.length) {
       keys.forEach((key) => {
-        html += this.getCookieList(controllers[key])
-      })
+        html += this.getCookieList(controllers[key]);
+      });
     } else {
-      html += this.getNoCookiesFound()
+      html += this.getNoCookiesFound();
     }
 
-    return html
+    return html;
   }
 
   getCookieList(controller: CookieControllerDataInterface): string {
     const cookies = Object.keys(controller.cookies).map((key) => {
-      return this.getCookieInformation(controller.cookies[key])
-    })
+      return this.getCookieInformation(controller.cookies[key]);
+    });
 
     return `
           <details class="box-card">
@@ -88,15 +81,15 @@ export class TabContent2 extends AbstractLayout {
                   ${controller.controller}
                   <span class="badge">(${Object.keys(controller.cookies).length})</span>
                 </span>
-                    ${arrowIcon('icon')}
+                    ${arrowIcon("icon")}
                 </div>
                 ${controller.privacy_policy ? this.getPrivacyPolicy(controller.privacy_policy) : ``}
             </summary>
 
-${cookies.join('')}
+${cookies.join("")}
         
     </details>
-    `
+    `;
   }
 
   getCookieInformation(cookie: CookieDataInterface): string {
@@ -113,13 +106,11 @@ ${cookies.join('')}
               <p><strong>Type:</strong> ${this.getCookieType(cookie)}</p>
           </div>
       </div>
-    `
+    `;
   }
 
   getCookieDescription(cookie: CookieDataInterface): string {
-    return cookie.description
-      ? cookie.description
-      : this.translations.no_cookie_description_available
+    return cookie.description ? cookie.description : this.translations.no_cookie_description_available;
   }
 
   getPrivacyPolicy(url: string) {
@@ -129,7 +120,7 @@ ${cookies.join('')}
        target="_blank"
        rel="noopener noreferrer"
     >${this.translations.privacy_policy_link_text}</a>
-    `
+    `;
   }
   getNoCookiesFound() {
     return `<div class="box-card">
@@ -140,18 +131,18 @@ ${cookies.join('')}
                 </span>
             </div>
         </div>
-    </div>`
+    </div>`;
   }
   render(): string {
-    let html = `<div class="responsive-padding">`
-    ;(Object.keys(this.cookies) as ConsentTypes[]).forEach((cookieKey: ClassificationTypes) => {
-      html += this.getCard(cookieKey, this.cookies[cookieKey])
-    })
+    let html = `<div class="responsive-padding">`;
+    (Object.keys(this.cookies) as ConsentTypes[]).forEach((cookieKey: ClassificationTypes) => {
+      html += this.getCard(cookieKey, this.cookies[cookieKey]);
+    });
 
-    return (html += `</div>`)
+    return (html += `</div>`);
   }
 
   getCookieType(cookie: CookieDataInterface): string {
-    return cookie.type ? cookie.type : this.translations.unknown
+    return cookie.type ? cookie.type : this.translations.unknown;
   }
 }

@@ -1,4 +1,4 @@
 export interface PluginInterface {
-  register(): void
-  isDefined(): boolean
+  register(): void;
+  isDefined(): boolean;
 }

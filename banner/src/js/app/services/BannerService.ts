@@ -1,9 +1,9 @@
-import { ccOnEvent } from '@/js/app/helpers'
+import { ccOnEvent } from "@/js/app/helpers";
 
 class BannerService {
   register() {
-    ccOnEvent('openBanner', () => {})
+    ccOnEvent("openBanner", () => {});
   }
 }
 
-export default BannerService
+export default BannerService;

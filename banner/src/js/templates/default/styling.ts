@@ -1,32 +1,32 @@
-import { ButtonTypes } from '@/js/app/types'
-import { AbstractLayout } from '@/js/templates/default/components/abstract-layout'
-import defaultCss from './app.css?raw'
+import { ButtonTypes } from "@/js/app/types";
+import { AbstractLayout } from "@/js/templates/default/components/abstract-layout";
+import defaultCss from "./app.css?raw";
 
 class Styling extends AbstractLayout {
   renderBorder(borderColor: string | null): string {
     if (borderColor) {
-      return `border: ${this.banner.design.consent.border} solid ${borderColor};`
+      return `border: ${this.banner.design.consent.border} solid ${borderColor};`;
     }
 
-    return ``
+    return ``;
   }
 
   getButtonStyling(): string {
-    let css = `${defaultCss}`
-    const styles = this.banner.design.consent.buttons
+    let css = `${defaultCss}`;
+    const styles = this.banner.design.consent.buttons;
 
     Object.keys(styles).forEach((buttonValue) => {
-      const style = styles[buttonValue as ButtonTypes]
+      const style = styles[buttonValue as ButtonTypes];
       css += `
         #${buttonValue} {
         background-color: ${style.bg};
           color: ${style.color};
           ${this.renderBorder(style.border)}
         }      
-      `
-    })
+      `;
+    });
 
-    return css
+    return css;
   }
 
   render(): string {
@@ -67,8 +67,8 @@ class Styling extends AbstractLayout {
   font-size: ${this.banner.design.general.fontSize};
   color: ${this.banner.design.general.fontColor};
 }
-`
+`;
   }
 }
 
-export default Styling
+export default Styling;

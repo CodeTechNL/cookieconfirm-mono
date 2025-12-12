@@ -8,15 +8,6 @@ import UetPlugin from "@/js/app/plugins/UetPlugin";
 import WordpressPlugin from "@/js/app/plugins/WordpressPlugin";
 import GtmPlugin from "@/js/app/plugins/GtmPlugin";
 
-const plugins = new PluginLoader([
-    ConsentPlugin,
-    GtmPlugin,
-    MatomoPlugin,
-    ClarityPlugin,
-    MetaPlugin,
-    ShopifyPlugin,
-    UetPlugin,
-    WordpressPlugin
-]);
+const plugins = new PluginLoader([ConsentPlugin, GtmPlugin, MatomoPlugin, ClarityPlugin, MetaPlugin, ShopifyPlugin, UetPlugin, WordpressPlugin]);
 
 plugins.register();
