@@ -16,12 +16,12 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
     "typeRoots": ["./node_modules/@types"],
-    "baseUrl": "./",
+    "baseUrl": "./cdk",
     "paths": {
-      "@lib/*": ["./cdk/lib/*"],
-      "@bin/*": ["./cdk/bin/*"],
-      "@constructs/*": ["./cdk/lib/constructs/*"],
-      "@stacks/*": ["./cdk/lib/stacks/*"]
+      "@lib/*": ["lib/*"],
+      "@bin/*": ["bin/*"],
+      "@constructs/*": ["lib/constructs/*"],
+      "@stacks/*": ["lib/stacks/*"]
     }
   },
   "include": ["cdk/**/*.ts"],

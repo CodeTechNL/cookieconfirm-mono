@@ -33,7 +33,7 @@ export class DomainResource extends Construct {
 
         const assetsSubDomain = StringParameter.valueFromLookup(
             this,
-            `/${prefix}/APP_ASSETS_SUBDOMAIN`,
+            `/${prefix}/APP_PLATFORM_ASSETS_SUBDOMAIN`,
         );
 
         const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {

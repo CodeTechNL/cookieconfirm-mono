@@ -5,6 +5,7 @@ import {AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId} from "aw
 
 interface FoundationStackProps extends StackProps {
     idPrefix: string
+    resourcePrefix: string
     version: string
 }
 
@@ -15,7 +16,7 @@ export class FoundationStack extends Stack {
     constructor(scope: Construct, id: string, props: FoundationStackProps) {
         super(scope, id, props);
 
-        const {idPrefix, version} = props;
+        const {idPrefix, version, resourcePrefix} = props;
 
         new CfnOutput(this, `${idPrefix}VersionBeforeBuild`, {
             value: version
@@ -27,20 +28,20 @@ export class FoundationStack extends Stack {
 
         this.environmentResource = new EnvironmentResource(this, `${idPrefix}EnvironmentVariables`, {
             idPrefix,
+            resourcePrefix,
             version
         });
 
-        this.updateVersion(version)
-
+        this.updateVersion(version, idPrefix)
     }
 
-    updateVersion(appVersionHash: string){
-        new AwsCustomResource(this, 'UpdateAppVersionHashParam', {
+    updateVersion(appVersionHash: string, idPrefix: string) {
+        new AwsCustomResource(this, `${idPrefix}UpdateAppVersionHashParam`, {
             onCreate: {
                 service: 'SSM',
                 action: 'putParameter',
                 parameters: {
-                    Name: '/CookieConfirmStaging/APP_VERSION_HASH',
+                    Name: `/${idPrefix}/APP_VERSION_HASH`,
                     Value: appVersionHash,
                     Type: 'String',
                     Overwrite: true,
@@ -54,7 +55,7 @@ export class FoundationStack extends Stack {
                 service: 'SSM',
                 action: 'putParameter',
                 parameters: {
-                    Name: '/CookieConfirmStaging/APP_VERSION_HASH',
+                    Name: `/${idPrefix}/APP_VERSION_HASH`,
                     Value: appVersionHash,
                     Type: 'String',
                     Overwrite: true,
@@ -69,7 +70,7 @@ export class FoundationStack extends Stack {
         });
     }
 
-    getEnvironmentResource(): EnvironmentResource{
+    getEnvironmentResource(): EnvironmentResource {
         return this.environmentResource;
     }
 }

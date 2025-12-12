@@ -54,9 +54,9 @@ export class PlatformStack extends Stack {
 
         const assetsStorageBucket = new PlatformAssetsResource(this, `${idPrefix}PlatformAssetsResource`, {
             bucketName: `${resourcePrefix}-platform-assets`,
-            domain: `${environment.getEnvironmentVars().CLOUDFRONT_ASSETS_DOMAIN}`,
+            domain: `${environment.getEnvironmentVars().OLD_ASSETS_DOMAIN}`,
             prefix: idPrefix,
-            certificateArn: environment.getEnvironmentVars().DOMAIN_CERTIFICATE
+            certificateArn: environment.getEnvironmentVars().CERTIFICATE_ARN
         });
 
         const applicationStorageBucket = new PlatformStorageResource(this, `${idPrefix}PlatformApplicationStorageResource`, {

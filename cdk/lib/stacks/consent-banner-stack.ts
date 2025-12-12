@@ -14,11 +14,14 @@ import {OneYearCachePolicy} from "../constructs/Cloudfront/CachePolicies/OneYear
 import {CloudfrontDistribution} from "../constructs/Cloudfront/CloudfrontDistribution";
 import {Certificate} from "aws-cdk-lib/aws-certificatemanager";
 import {StringParameter} from "aws-cdk-lib/aws-ssm";
+import {ARecord, HostedZone, RecordTarget} from "aws-cdk-lib/aws-route53";
+import {CloudFrontTarget} from "aws-cdk-lib/aws-route53-targets";
 
 
 interface ConsentBannerStackProps extends StackProps {
     idPrefix: string;
     environment: EnvironmentResource,
+
 }
 
 export class ConsentBannerStack extends Stack {
@@ -28,10 +31,6 @@ export class ConsentBannerStack extends Stack {
         const {idPrefix, environment} = props;
 
         const config = environment.getEnvironmentVars();
-
-        console.log(config)
-
-        // config.CLOUDFRONT_CERTIFICATE_ARN = 'arn:aws:acm:us-east-1:585008041582:certificate/7aded256-00a4-4243-ae46-3545a6a58e58';
 
         const athena = new AthenaConsentStore(this, `${idPrefix}AthenaDatabaseResource`, {
             idPrefix,
@@ -69,7 +68,7 @@ export class ConsentBannerStack extends Stack {
 
         const arn = StringParameter.valueForStringParameter(
             this,
-            `/${idPrefix}/CLOUDFRONT_CERTIFICATE_ARN`,
+            `/${idPrefix}/CERTIFICATE_ARN`,
         );
 
         const certificate = Certificate.fromCertificateArn(
@@ -81,7 +80,8 @@ export class ConsentBannerStack extends Stack {
         const cdnDistribution = new CloudfrontDistribution(this, 'SiteDistribution', {
             certificate,
             domainNames: [
-                config.CLOUDFRONT_ASSETS_DOMAIN,
+                config.OLD_ASSETS_DOMAIN,
+                config.BANNER_DOMAIN,
             ],
             origin: javascriptBucket.getOrigin()
         })
@@ -120,5 +120,22 @@ export class ConsentBannerStack extends Stack {
             destinationBucket: jsonFilesBucket,
             distribution: cdnDistribution
         })
+
+        // const {hostedZoneDomain, distribution, recordName} = props;
+
+        // const zone = HostedZone.fromLookup(this, "HostedZone", {
+        //     domainName: environment.getEnvironmentVars().CLOUDFRONT_ASSETS_DOMAIN,
+        // });
+
+        const zone = HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
+            hostedZoneId: environment.getEnvironmentVars().HOSTED_ZONE_ID,
+            zoneName: environment.getEnvironmentVars().APP_MAIN_DOMAIN
+        });
+
+        new ARecord(this, `${idPrefix}BannerSubdomainRecord`, {
+            zone,
+            recordName: 'banner',
+            target: RecordTarget.fromAlias(new CloudFrontTarget(cdnDistribution)),
+        });
     }
 }

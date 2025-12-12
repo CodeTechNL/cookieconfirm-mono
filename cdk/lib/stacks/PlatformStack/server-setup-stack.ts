@@ -49,7 +49,7 @@ export class ServerSetupStack extends Stack {
             bucketName: `${resourcePrefix}-platform-assets`,
             domain: `${environment.getEnvironmentVars().CLOUDFRONT_ASSETS_DOMAIN}`,
             prefix: idPrefix,
-            certificateArn: environment.getEnvironmentVars().DOMAIN_CERTIFICATE
+            certificateArn: environment.getEnvironmentVars().CERTIFICATE_ARN
         });
 
         const applicationStorageBucket = new PlatformStorageResource(this, `${idPrefix}PlatformApplicationStorageResource`, {
