@@ -19,41 +19,41 @@ import WordpressPlugin from "@/js/app/plugins/WordpressPlugin";
 import GtmPlugin from "@/js/app/plugins/GtmPlugin";
 
 (() => {
-  "use strict";
+    "use strict";
 
-  const plugins = new PluginLoader([ConsentPlugin, GtmPlugin, MatomoPlugin, ClarityPlugin, MetaPlugin, ShopifyPlugin, UetPlugin, WordpressPlugin]);
+    const plugins = new PluginLoader([ConsentPlugin, GtmPlugin, MatomoPlugin, ClarityPlugin, MetaPlugin, ShopifyPlugin, UetPlugin, WordpressPlugin]);
 
-  const initApp = (layout: TemplateConcrete, cookieService: typeof CookieStorageService) => {
-    const initService = new BannerDataService(CdnService, localStorageService, cookieStorageService);
+    const initApp = (layout: TemplateConcrete, cookieService: typeof CookieStorageService) => {
+        const initService = new BannerDataService(CdnService, localStorageService, cookieStorageService);
 
-    initService.getInitData().then(async (result) => {
-      const consentId = cookieService.getConsentId();
-      window.ccDispatch("consentIdSet", {
-        id: consentId,
-      });
+        initService.getInitData().then(async (result) => {
+            const consentId = cookieService.getConsentId();
+            window.ccDispatch("consentIdSet", {
+                id: consentId,
+            });
 
-      const data = await initService.getBanner(result.country, result.banner.availableLanguages, result.banner.fallbackLanguage, result.banner.geoRules);
+            const data = await initService.getBanner(result.country, result.banner.availableLanguages, result.banner.fallbackLanguage, result.banner.geoRules);
 
-      const template = new layout(data.translations, data.banner, data.cookies, new BannerEvents(consentId, "sample.com"), consentId);
+            const template = new layout(data.translations, data.banner, data.cookies, new BannerEvents(consentId, "sample.com"), consentId);
 
-      const acceptedCookies = cookieService.getAcceptedCookies();
+            const acceptedCookies = cookieService.getAcceptedCookies();
 
-      if (acceptedCookies.length) {
-        template.renderCookieIcon();
-        ccDispatchEvent("enableConsent", acceptedCookies);
-      } else {
-        template.renderBanner();
-      }
+            if (acceptedCookies.length) {
+                template.renderCookieIcon();
+                ccDispatchEvent("enableConsent", acceptedCookies);
+            } else {
+                template.renderBanner();
+            }
 
-      window.ccListen("consentGiven", (e) => {
-        cookieService.setAcceptedCookies(e.consent);
-      });
+            window.ccListen("consentGiven", (e) => {
+                cookieService.setAcceptedCookies(e.consent);
+            });
+        });
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        plugins.register();
+
+        initApp(Template, CookieStorageService);
     });
-  };
-
-  document.addEventListener("DOMContentLoaded", () => {
-    plugins.register();
-
-    initApp(Template, CookieStorageService);
-  });
 })();

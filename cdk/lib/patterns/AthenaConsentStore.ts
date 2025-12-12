@@ -6,47 +6,47 @@ import { AthenaWorkGroup } from "../constructs/Athena/AthenaWorkGroup";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 
 type AthenaDatabaseResourceProps = {
-  account: string;
-  databaseName: string;
-  tableName: string;
-  bucketName: string;
-  workGroupName: string;
-  storagePathS3: string;
-  idPrefix: string;
+    account: string;
+    databaseName: string;
+    tableName: string;
+    bucketName: string;
+    workGroupName: string;
+    storagePathS3: string;
+    idPrefix: string;
 };
 
 export class AthenaConsentStore extends Construct {
-  private readonly bucket: Bucket;
+    private readonly bucket: Bucket;
 
-  constructor(scope: Construct, id: string, props: AthenaDatabaseResourceProps) {
-    super(scope, id);
+    constructor(scope: Construct, id: string, props: AthenaDatabaseResourceProps) {
+        super(scope, id);
 
-    const { account, databaseName, tableName, bucketName, workGroupName, storagePathS3, idPrefix } = props;
+        const { account, databaseName, tableName, bucketName, workGroupName, storagePathS3, idPrefix } = props;
 
-    this.bucket = new AthenaDatabaseConsentLogsBucket(this, `${idPrefix}AthenaDatabaseBucket`, {
-      bucketName,
-    });
+        this.bucket = new AthenaDatabaseConsentLogsBucket(this, `${idPrefix}AthenaDatabaseBucket`, {
+            bucketName,
+        });
 
-    new AthenaDatabase(this, `${idPrefix}AthenaDatabase`, {
-      account,
-      databaseName: databaseName,
-    });
+        new AthenaDatabase(this, `${idPrefix}AthenaDatabase`, {
+            account,
+            databaseName: databaseName,
+        });
 
-    new AthenaTable(this, `${idPrefix}AthenaTable`, {
-      storagePathS3,
-      account,
-      bucket: this.bucket,
-      databaseName,
-      tableName,
-    });
+        new AthenaTable(this, `${idPrefix}AthenaTable`, {
+            storagePathS3,
+            account,
+            bucket: this.bucket,
+            databaseName,
+            tableName,
+        });
 
-    new AthenaWorkGroup(this, `${idPrefix}AthenaWorkGroup`, {
-      bucket: this.bucket,
-      workGroupName,
-    });
-  }
+        new AthenaWorkGroup(this, `${idPrefix}AthenaWorkGroup`, {
+            bucket: this.bucket,
+            workGroupName,
+        });
+    }
 
-  public getAthenaBucket() {
-    return this.bucket;
-  }
+    public getAthenaBucket() {
+        return this.bucket;
+    }
 }

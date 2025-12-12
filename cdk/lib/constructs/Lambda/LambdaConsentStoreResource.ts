@@ -9,67 +9,67 @@ import { Duration, Fn } from "aws-cdk-lib";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 
 type LambdaConsentStoreProps = {
-  awsAccount: string;
-  bucketName: string;
-  streamName: string;
+    awsAccount: string;
+    bucketName: string;
+    streamName: string;
 };
 
 export class LambdaConsentStoreResource extends Construct {
-  private readonly ingestUrl: string;
+    private readonly ingestUrl: string;
 
-  constructor(scope: Construct, id: string, props: LambdaConsentStoreProps) {
-    super(scope, id);
+    constructor(scope: Construct, id: string, props: LambdaConsentStoreProps) {
+        super(scope, id);
 
-    const { awsAccount, bucketName, streamName } = props;
-    const bucket = Bucket.fromBucketName(this, "ExistingAthenaBucket", bucketName);
+        const { awsAccount, bucketName, streamName } = props;
+        const bucket = Bucket.fromBucketName(this, "ExistingAthenaBucket", bucketName);
 
-    const group = new LogGroup(this, "Group", {
-      retention: RetentionDays.TWO_WEEKS,
-    });
+        const group = new LogGroup(this, "Group", {
+            retention: RetentionDays.TWO_WEEKS,
+        });
 
-    const ingestFn = new NodejsFunction(this, "IngestFn", {
-      runtime: Runtime.NODEJS_20_X,
-      handler: "handler",
-      entry: fromRoot("lambda", "consent-store", "firehose.ts"),
-      environment: {
-        CONSENT_LOG_BUCKET: bucketName,
-        DELIVERY_STREAM_NAME: streamName,
-      },
-      memorySize: 128,
-      logGroup: group,
-      timeout: Duration.seconds(5),
-      bundling: {
-        minify: true,
-        target: "es2022",
-        format: OutputFormat.ESM,
-        externalModules: ["@aws-sdk/client-firehose"],
-      },
-    });
+        const ingestFn = new NodejsFunction(this, "IngestFn", {
+            runtime: Runtime.NODEJS_20_X,
+            handler: "handler",
+            entry: fromRoot("lambda", "consent-store", "firehose.ts"),
+            environment: {
+                CONSENT_LOG_BUCKET: bucketName,
+                DELIVERY_STREAM_NAME: streamName,
+            },
+            memorySize: 128,
+            logGroup: group,
+            timeout: Duration.seconds(5),
+            bundling: {
+                minify: true,
+                target: "es2022",
+                format: OutputFormat.ESM,
+                externalModules: ["@aws-sdk/client-firehose"],
+            },
+        });
 
-    const streamArn = `arn:aws:firehose:eu-west-3:${awsAccount}:deliverystream/${streamName}`;
+        const streamArn = `arn:aws:firehose:eu-west-3:${awsAccount}:deliverystream/${streamName}`;
 
-    ingestFn.addToRolePolicy(
-      new PolicyStatement({
-        actions: ["firehose:PutRecord", "firehose:PutRecordBatch", "firehose:DescribeDeliveryStream"],
-        resources: [streamArn],
-      }),
-    );
+        ingestFn.addToRolePolicy(
+            new PolicyStatement({
+                actions: ["firehose:PutRecord", "firehose:PutRecordBatch", "firehose:DescribeDeliveryStream"],
+                resources: [streamArn],
+            }),
+        );
 
-    const ingestUrl = ingestFn.addFunctionUrl({
-      authType: FunctionUrlAuthType.NONE,
-      cors: {
-        allowedMethods: [HttpMethod.ALL],
-        allowedOrigins: ["*"],
-        allowedHeaders: ["*"],
-      },
-    });
+        const ingestUrl = ingestFn.addFunctionUrl({
+            authType: FunctionUrlAuthType.NONE,
+            cors: {
+                allowedMethods: [HttpMethod.ALL],
+                allowedOrigins: ["*"],
+                allowedHeaders: ["*"],
+            },
+        });
 
-    bucket.grantPut(ingestFn);
+        bucket.grantPut(ingestFn);
 
-    this.ingestUrl = Fn.select(2, Fn.split("/", ingestUrl.url));
-  }
+        this.ingestUrl = Fn.select(2, Fn.split("/", ingestUrl.url));
+    }
 
-  public getIngestUrl(): string {
-    return this.ingestUrl;
-  }
+    public getIngestUrl(): string {
+        return this.ingestUrl;
+    }
 }

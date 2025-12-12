@@ -5,8 +5,8 @@ import Content from "@/js/templates/default/layouts/content";
 import Footer from "@/js/templates/default/layouts/footer";
 
 export class MainLayout extends AbstractLayout {
-  render(): string {
-    return `
+    render(): string {
+        return `
     
     <div class="modal-backdrop ${this.hasCustomizeSelection()}" id="consent-banner" data-tab-opened="tab1"
     role="dialog" aria-modal="true" aria-labelledby="cc-banner-heading"
@@ -39,11 +39,11 @@ export class MainLayout extends AbstractLayout {
 </div>
 
     `;
-  }
+    }
 
-  hasCustomizeSelection() {
-    const hasButton = this.banner.functional.customizeSelectionButton;
+    hasCustomizeSelection() {
+        const hasButton = this.banner.functional.customizeSelectionButton;
 
-    return hasButton ? `has-customize-selection` : ``;
-  }
+        return hasButton ? `has-customize-selection` : ``;
+    }
 }

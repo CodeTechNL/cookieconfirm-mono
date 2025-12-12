@@ -1,3 +1,3 @@
 interface RenderableInterface {
-  render(): string;
+    render(): string;
 }

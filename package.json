@@ -15,8 +15,10 @@
     "update-repo": "git submodule update --remote",
     "deploy-scanner": "cd ./cdk && cdk deploy CookieScannerStack",
     "deploy-banner": "npm run build-banner && npm run cdk deploy -- --all",
+    "code:format": "npx @biomejs/biome format --write",
     "____ CDK ______________________________________________": "",
-    "cdk:deploy:banner": "cdk deploy --app 'tsx cdk/bin/consent-banner.ts' --all --require-approval never"
+    "cdk:deploy:banner": "cdk deploy --app 'tsx cdk/bin/consent-banner.ts' --all --require-approval never",
+    "cdk:deploy:cookie-scanner": "cdk deploy --app 'tsx cdk/bin/cookie-scanner.ts' --all --require-approval never"
   },
   "workspaces": [
     "banner/*",

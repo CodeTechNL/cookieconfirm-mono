@@ -5,45 +5,45 @@ import { AllowedMethods, CachePolicy, Distribution, PriceClass, SecurityPolicyPr
 import { S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 
 interface PlatformAssetsProps extends StackProps {
-  bucketName: string;
+    bucketName: string;
 }
 
 export class PlatformAssetsResource extends Construct {
-  private readonly bucket: Bucket;
+    private readonly bucket: Bucket;
 
-  constructor(scope: Construct, id: string, props: PlatformAssetsProps) {
-    super(scope, id);
+    constructor(scope: Construct, id: string, props: PlatformAssetsProps) {
+        super(scope, id);
 
-    this.bucket = new Bucket(this, "CookieConfirmAssetsBucket", {
-      bucketName: props.bucketName,
-      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-      encryption: BucketEncryption.S3_MANAGED,
-      enforceSSL: true,
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
-      objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
-    });
+        this.bucket = new Bucket(this, "CookieConfirmAssetsBucket", {
+            bucketName: props.bucketName,
+            blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+            encryption: BucketEncryption.S3_MANAGED,
+            enforceSSL: true,
+            removalPolicy: RemovalPolicy.DESTROY,
+            autoDeleteObjects: true,
+            objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
+        });
 
-    const origin = S3BucketOrigin.withOriginAccessControl(this.getBucket());
+        const origin = S3BucketOrigin.withOriginAccessControl(this.getBucket());
 
-    const distribution = new Distribution(this, "SiteDistribution", {
-      comment: "CDN for serving banner assets",
-      defaultRootObject: "index.html",
-      minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
-      priceClass: PriceClass.PRICE_CLASS_100,
-      defaultBehavior: {
-        cachePolicy: CachePolicy.CACHING_DISABLED,
-        origin: origin,
-        compress: true,
-        allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
-        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      },
-    });
+        const distribution = new Distribution(this, "SiteDistribution", {
+            comment: "CDN for serving banner assets",
+            defaultRootObject: "index.html",
+            minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
+            priceClass: PriceClass.PRICE_CLASS_100,
+            defaultBehavior: {
+                cachePolicy: CachePolicy.CACHING_DISABLED,
+                origin: origin,
+                compress: true,
+                allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
+                viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+            },
+        });
 
-    new CfnOutput(this, "CloudFrontDomain", { value: distribution.domainName });
-  }
+        new CfnOutput(this, "CloudFrontDomain", { value: distribution.domainName });
+    }
 
-  getBucket() {
-    return this.bucket;
-  }
+    getBucket() {
+        return this.bucket;
+    }
 }

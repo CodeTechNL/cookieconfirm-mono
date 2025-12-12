@@ -1,3 +1,3 @@
 export interface Registerable {
-  register(): void;
+    register(): void;
 }

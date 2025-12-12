@@ -4,25 +4,25 @@ import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 import { Distribution } from "aws-cdk-lib/aws-cloudfront";
 
 type CloudfrontDomainSetupProps = {
-  distribution: Distribution;
-  hostedZoneDomain: string;
-  recordName: string;
+    distribution: Distribution;
+    hostedZoneDomain: string;
+    recordName: string;
 };
 
 export class CloudfrontDomainSetup extends Construct {
-  constructor(scope: Construct, id: string, props: CloudfrontDomainSetupProps) {
-    super(scope, id);
+    constructor(scope: Construct, id: string, props: CloudfrontDomainSetupProps) {
+        super(scope, id);
 
-    const { hostedZoneDomain, distribution, recordName } = props;
+        const { hostedZoneDomain, distribution, recordName } = props;
 
-    const zone = HostedZone.fromLookup(this, "HostedZone", {
-      domainName: hostedZoneDomain,
-    });
+        const zone = HostedZone.fromLookup(this, "HostedZone", {
+            domainName: hostedZoneDomain,
+        });
 
-    new ARecord(this, "BannerSubdomainRecord", {
-      zone,
-      recordName,
-      target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
-    });
-  }
+        new ARecord(this, "BannerSubdomainRecord", {
+            zone,
+            recordName,
+            target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+        });
+    }
 }

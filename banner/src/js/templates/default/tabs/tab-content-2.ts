@@ -5,12 +5,12 @@ import { AbstractLayout } from "@/js/templates/default/components/abstract-layou
 import { ClassificationTypes, ConsentTypes } from "@/js/app/types";
 
 export class TabContent2 extends AbstractLayout {
-  showToggle(type: ClassificationTypes) {
-    return type !== "unclassified";
-  }
+    showToggle(type: ClassificationTypes) {
+        return type !== "unclassified";
+    }
 
-  getCard(category: ClassificationTypes, cookieInformation: CookieCategoryDataInterface) {
-    return `
+    getCard(category: ClassificationTypes, cookieInformation: CookieCategoryDataInterface) {
+        return `
 <div>
 <div class="clickable-block">
  <div class="accordion-item">
@@ -51,29 +51,29 @@ export class TabContent2 extends AbstractLayout {
 </div>
    
     `;
-  }
-
-  getAccordionContent(category: ClassificationTypes, controllers: Record<string, CookieControllerDataInterface>): string {
-    const keys = Object.keys(controllers);
-    let html = ``;
-
-    if (keys.length) {
-      keys.forEach((key) => {
-        html += this.getCookieList(controllers[key]);
-      });
-    } else {
-      html += this.getNoCookiesFound();
     }
 
-    return html;
-  }
+    getAccordionContent(category: ClassificationTypes, controllers: Record<string, CookieControllerDataInterface>): string {
+        const keys = Object.keys(controllers);
+        let html = ``;
 
-  getCookieList(controller: CookieControllerDataInterface): string {
-    const cookies = Object.keys(controller.cookies).map((key) => {
-      return this.getCookieInformation(controller.cookies[key]);
-    });
+        if (keys.length) {
+            keys.forEach((key) => {
+                html += this.getCookieList(controllers[key]);
+            });
+        } else {
+            html += this.getNoCookiesFound();
+        }
 
-    return `
+        return html;
+    }
+
+    getCookieList(controller: CookieControllerDataInterface): string {
+        const cookies = Object.keys(controller.cookies).map((key) => {
+            return this.getCookieInformation(controller.cookies[key]);
+        });
+
+        return `
           <details class="box-card">
             <summary class="clickable-block">
                 <div class="flex-between-center">
@@ -90,10 +90,10 @@ ${cookies.join("")}
         
     </details>
     `;
-  }
+    }
 
-  getCookieInformation(cookie: CookieDataInterface): string {
-    return `
+    getCookieInformation(cookie: CookieDataInterface): string {
+        return `
      <div class="box-container">
           <strong class="p-3">${cookie.cookie_key}</strong>
           <p class="p-3">
@@ -107,23 +107,23 @@ ${cookies.join("")}
           </div>
       </div>
     `;
-  }
+    }
 
-  getCookieDescription(cookie: CookieDataInterface): string {
-    return cookie.description ? cookie.description : this.translations.no_cookie_description_available;
-  }
+    getCookieDescription(cookie: CookieDataInterface): string {
+        return cookie.description ? cookie.description : this.translations.no_cookie_description_available;
+    }
 
-  getPrivacyPolicy(url: string) {
-    return `
+    getPrivacyPolicy(url: string) {
+        return `
         <a class="privacy-policy-link"
        href="${url}"
        target="_blank"
        rel="noopener noreferrer"
     >${this.translations.privacy_policy_link_text}</a>
     `;
-  }
-  getNoCookiesFound() {
-    return `<div class="box-card">
+    }
+    getNoCookiesFound() {
+        return `<div class="box-card">
         <div class="clickable-block">
             <div class="flex-between-center">
                 <span class="text-bold-flex">
@@ -132,17 +132,17 @@ ${cookies.join("")}
             </div>
         </div>
     </div>`;
-  }
-  render(): string {
-    let html = `<div class="responsive-padding">`;
-    (Object.keys(this.cookies) as ConsentTypes[]).forEach((cookieKey: ClassificationTypes) => {
-      html += this.getCard(cookieKey, this.cookies[cookieKey]);
-    });
+    }
+    render(): string {
+        let html = `<div class="responsive-padding">`;
+        (Object.keys(this.cookies) as ConsentTypes[]).forEach((cookieKey: ClassificationTypes) => {
+            html += this.getCard(cookieKey, this.cookies[cookieKey]);
+        });
 
-    return (html += `</div>`);
-  }
+        return (html += `</div>`);
+    }
 
-  getCookieType(cookie: CookieDataInterface): string {
-    return cookie.type ? cookie.type : this.translations.unknown;
-  }
+    getCookieType(cookie: CookieDataInterface): string {
+        return cookie.type ? cookie.type : this.translations.unknown;
+    }
 }

@@ -12,29 +12,30 @@ const env = getAwsEnv();
 const version = uuid();
 
 new PhpImageStack(app, `Php83Stack`, {
-  imageName: "ubuntu_php_8_3",
-  env,
+    imageName: "ubuntu_php_8_3",
+    env,
 });
 
 const foundationStack = new FoundationStack(app, `FoundationStack`, {
-  stackName: `${idPrefix}FoundationStack`,
-  env,
-  idPrefix,
-  version,
+    resourcePrefix,
+    stackName: `${idPrefix}FoundationStack`,
+    env,
+    idPrefix,
+    version,
 });
 
 const platformStack = new PlatformStack(app, `PlatformStack`, {
-  stackName: `${idPrefix}PlatformStack`,
-  environmentVariables: foundationStack.getEnvironmentResource(),
-  idPrefix,
-  resourcePrefix,
-  version,
-  cdk: {
-    baseDockerImage:
-      "585008041582.dkr.ecr.eu-west-3.amazonaws.com/cdk-hnb659fds-container-assets-585008041582-eu-west-3:00bbf7bd00166c64d2fa83e315d2c261695a3da459e3899cd50bf9a52a96eb2f",
-    certificateArn: "arn:aws:acm:eu-west-3:585008041582:certificate/4b315ff2-8173-4192-a786-3ff9fca41399",
-  },
-  env,
+    stackName: `${idPrefix}PlatformStack`,
+    environmentVariables: foundationStack.getEnvironmentResource(),
+    idPrefix,
+    resourcePrefix,
+    version,
+    cdk: {
+        baseDockerImage:
+            "585008041582.dkr.ecr.eu-west-3.amazonaws.com/cdk-hnb659fds-container-assets-585008041582-eu-west-3:00bbf7bd00166c64d2fa83e315d2c261695a3da459e3899cd50bf9a52a96eb2f",
+        certificateArn: "arn:aws:acm:eu-west-3:585008041582:certificate/4b315ff2-8173-4192-a786-3ff9fca41399",
+    },
+    env,
 });
 
 platformStack.addDependency(foundationStack);

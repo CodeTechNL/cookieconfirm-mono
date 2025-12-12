@@ -2,8 +2,8 @@ import button from "@/js/templates/default/components/button";
 import { AbstractLayout } from "@/js/templates/default/components/abstract-layout";
 
 export default class Footer extends AbstractLayout {
-  render(): string {
-    return `
+    render(): string {
+        return `
     <div class="flex-responsive">
         <div class="footer-content">
             ${button(this.translations.btn_reject_all, "rejectAll")}
@@ -13,5 +13,5 @@ export default class Footer extends AbstractLayout {
         </div>
     </div>
     `;
-  }
+    }
 }

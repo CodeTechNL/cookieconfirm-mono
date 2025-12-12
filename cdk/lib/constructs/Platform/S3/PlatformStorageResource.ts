@@ -5,26 +5,26 @@ import { AllowedMethods, CachePolicy, Distribution, PriceClass, SecurityPolicyPr
 import { S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 
 interface PlatformAssetsProps extends BucketProps {
-  bucketName: string;
+    bucketName: string;
 }
 
 export class PlatformStorageResource extends Bucket {
-  private readonly bucket: Bucket;
+    private readonly bucket: Bucket;
 
-  constructor(scope: Construct, id: string, props: PlatformAssetsProps) {
-    const baseProps = {
-      bucketName: props.bucketName,
-      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-      encryption: BucketEncryption.S3_MANAGED,
-      enforceSSL: true,
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
-      objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
-    };
-    super(scope, id, baseProps);
-  }
+    constructor(scope: Construct, id: string, props: PlatformAssetsProps) {
+        const baseProps = {
+            bucketName: props.bucketName,
+            blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+            encryption: BucketEncryption.S3_MANAGED,
+            enforceSSL: true,
+            removalPolicy: RemovalPolicy.DESTROY,
+            autoDeleteObjects: true,
+            objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
+        };
+        super(scope, id, baseProps);
+    }
 
-  getBucket() {
-    return this.bucket;
-  }
+    getBucket() {
+        return this.bucket;
+    }
 }

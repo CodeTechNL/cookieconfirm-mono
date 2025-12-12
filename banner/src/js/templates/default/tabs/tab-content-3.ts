@@ -1,8 +1,8 @@
 import { AbstractLayout } from "@/js/templates/default/components/abstract-layout";
 
 export class TabContent3 extends AbstractLayout {
-  render(): string {
-    return `
+    render(): string {
+        return `
     <div class="responsive-padding">
       <div class="vertical-spacing">
           <p>
@@ -14,5 +14,5 @@ export class TabContent3 extends AbstractLayout {
       </div>
   </div>
     `;
-  }
+    }
 }

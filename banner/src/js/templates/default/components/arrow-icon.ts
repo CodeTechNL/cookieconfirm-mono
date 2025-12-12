@@ -1,5 +1,5 @@
 export const arrowIcon = (className: string) => {
-  return `
+    return `
     <svg
     class="${className}"
     fill="none"

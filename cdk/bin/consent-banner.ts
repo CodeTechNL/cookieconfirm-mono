@@ -11,18 +11,18 @@ const version = uuid();
 const resourcePrefix = getResourcePrefix(app);
 
 const foundationStack = new FoundationStack(app, `FoundationStack`, {
-  stackName: `${idPrefix}FoundationStack`,
-  resourcePrefix,
-  env,
-  idPrefix,
-  version,
+    stackName: `${idPrefix}FoundationStack`,
+    resourcePrefix,
+    env,
+    idPrefix,
+    version,
 });
 
 const consentBannerStack = new ConsentBannerStack(app, "ConsentBannerStack", {
-  stackName: `${idPrefix}ConsentBannerStack`,
-  environment: foundationStack.getEnvironmentResource(),
-  idPrefix,
-  env,
+    stackName: `${idPrefix}ConsentBannerStack`,
+    environment: foundationStack.getEnvironmentResource(),
+    idPrefix,
+    env,
 });
 
 consentBannerStack.addDependency(foundationStack);
