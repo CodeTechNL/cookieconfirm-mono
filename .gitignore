@@ -7,7 +7,7 @@ cdk/node_modules
 
 # CDK asset staging directory
 cdk/.cdk.staging
-cdk/cdk.out
+cdk.out
 **/node_modules
 
 banner/dist
