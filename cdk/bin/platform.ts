@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
-import { getAwsEnv, getIdPrefix, getResourcePrefix, uuid } from "../lib/helpers";
+import {getAwsEnv, getIdPrefix, getResourcePrefix, loadAwsProfileEnv, uuid} from "../lib/helpers";
 import { PlatformStack } from "../lib/stacks/platform-stack";
-import { PhpImageStack } from "../lib/stacks/php-image-stack";
 import { FoundationStack } from "../lib/stacks/PlatformStack/foundation-stack";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const app = new cdk.App();
 const idPrefix = getIdPrefix(app);
@@ -11,33 +13,26 @@ const resourcePrefix = getResourcePrefix(app);
 const env = getAwsEnv();
 const version = uuid();
 
-new PhpImageStack(app, `Php83Stack`, {
-    imageName: "ubuntu_php_8_3",
-    env,
-});
+// const foundationStack = new FoundationStack(app, `FoundationStack`, {
+//     resourcePrefix,
+//     stackName: `${idPrefix}FoundationStack`,
+//     env,
+//     idPrefix,
+//     version,
+// });
 
-const foundationStack = new FoundationStack(app, `FoundationStack`, {
-    resourcePrefix,
-    stackName: `${idPrefix}FoundationStack`,
-    env,
-    idPrefix,
-    version,
-});
-
-const platformStack = new PlatformStack(app, `PlatformStack`, {
+new PlatformStack(app, `PlatformStack`, {
     stackName: `${idPrefix}PlatformStack`,
-    environmentVariables: foundationStack.getEnvironmentResource(),
+    // environmentVariables: foundationStack.getEnvironmentResource(),
     idPrefix,
     resourcePrefix,
     version,
     cdk: {
-        baseDockerImage:
-            "585008041582.dkr.ecr.eu-west-3.amazonaws.com/cdk-hnb659fds-container-assets-585008041582-eu-west-3:00bbf7bd00166c64d2fa83e315d2c261695a3da459e3899cd50bf9a52a96eb2f",
-        certificateArn: "arn:aws:acm:eu-west-3:585008041582:certificate/4b315ff2-8173-4192-a786-3ff9fca41399",
+        baseDockerImage: "830424059839.dkr.ecr.eu-central-1.amazonaws.com/cdk-hnb659fds-container-assets-830424059839-eu-central-1:7b6350f9ff268689e1c9145f6a957954780a27c7380b62917adddeede702f1de",
     },
     env,
 });
 
-platformStack.addDependency(foundationStack);
+// platformStack.addDependency(foundationStack);
 
 app.synth();

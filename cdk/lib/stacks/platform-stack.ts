@@ -6,7 +6,6 @@ import { LogGroup } from "aws-cdk-lib/aws-logs";
 import { Cluster, DeploymentControllerType } from "aws-cdk-lib/aws-ecs";
 import { Construct } from "constructs";
 import { PlatformDockerResource } from "../constructs/Platform/ECR/PlatformDockerResource";
-import { ApplicationTargetGroupResource } from "../constructs/Platform/ApplicationTargetGroupResource";
 import { TaskDefinitionResource } from "../constructs/Platform/TaskDefinitionResource";
 import { ApplicationLoadBalancerResource } from "../constructs/Platform/ApplicationLoadBalancerResource";
 import { VpcResource } from "../constructs/Platform/VpcResource";
@@ -15,17 +14,15 @@ import { RedisCacheClusterResource } from "../constructs/Platform/RedisCacheClus
 import { PlatformDatabaseResource } from "../constructs/Platform/RDS/PlatformDatabaseResource";
 import { SecurityGroupResource } from "../constructs/Platform/SecurityGroupResource";
 import { CfnOutput, Environment, Fn } from "aws-cdk-lib";
-import { DomainResource } from "../constructs/Platform/DomainSetupResource";
 import { PlatformAssetsResource } from "../constructs/Platform/PlatformAssetsResource";
 import { PlatformStorageResource } from "../constructs/Platform/S3/PlatformStorageResource";
 import { QueueResource } from "../constructs/Platform/QueueResource";
 import { Queue } from "aws-cdk-lib/aws-sqs";
 import { EnvironmentResource } from "../constructs/Platform/EnvironmentResource";
-import { ApplicationType } from "../types/ApplicationType";
-import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
-import { ApplicationProtocol, ListenerAction } from "aws-cdk-lib/aws-elasticloadbalancingv2";
-import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { JumpboxResource } from "../constructs/Platform/JumpboxResource";
+import {DomainResource} from "../constructs/Platform/DomainSetupResource";
+import {ApplicationType} from "../types/ApplicationType";
+import {EnvironmentVariables} from "../patterns/EnvironmentVariables";
 
 interface PlatformAssetsStackProps extends StackProps {
     version: string;
@@ -34,27 +31,28 @@ interface PlatformAssetsStackProps extends StackProps {
     resourcePrefix: string;
     cdk: {
         baseDockerImage: string;
-        certificateArn: string;
-    };
-    environmentVariables: EnvironmentResource;
+    }
 }
 
 export class PlatformStack extends Stack {
     constructor(scope: Construct, id: string, props: PlatformAssetsStackProps) {
         super(scope, id, props);
+        const { version, idPrefix, resourcePrefix, env } = props;
 
-        const { baseDockerImage, certificateArn } = props.cdk;
-        const { version, idPrefix, resourcePrefix } = props;
+        const envPattern = new EnvironmentVariables(this, `${idPrefix}EnvironmentVariables`, {
+            idPrefix, resourcePrefix, version
+        })
 
-        const environment = props.environmentVariables;
+        const { baseDockerImage } = props.cdk;
 
-        const region = props.env!.region as string;
+        const environment = envPattern.getEnvironmentResource();
+        const config = envPattern.getEnvironmentResource().getEnvironmentVars()
 
         const assetsStorageBucket = new PlatformAssetsResource(this, `${idPrefix}PlatformAssetsResource`, {
             bucketName: `${resourcePrefix}-platform-assets`,
-            domain: `${environment.getEnvironmentVars().OLD_ASSETS_DOMAIN}`,
+            domain: config.PLATFORM_ASSETS_URL,
             prefix: idPrefix,
-            certificateArn: environment.getEnvironmentVars().CERTIFICATE_ARN,
+            certificateArn: config.CERTIFICATE_ARN,
         });
 
         const applicationStorageBucket = new PlatformStorageResource(this, `${idPrefix}PlatformApplicationStorageResource`, {
@@ -82,7 +80,7 @@ export class PlatformStack extends Stack {
         const alb = new ApplicationLoadBalancerResource(this, `${idPrefix}ApplicationALB`, {
             vpcResource,
             prefix: idPrefix,
-            certificateArn,
+            certificateArn: config.REGION_CERTIFICATE_ARN,
         });
 
         // Fargate Service Things
@@ -110,7 +108,7 @@ export class PlatformStack extends Stack {
         applicationStorageBucket.grantReadWrite(taskRole);
 
         const applicationServiceDefinition = new TaskDefinitionResource(this, `${idPrefix}ApplicationFargateServiceDefinition`, {
-            taskRole: taskRole,
+            taskRole,
         });
 
         const applicationSecurityGroup = new SecurityGroupResource(this, `${idPrefix}ApplicationSgResource`, {
@@ -130,7 +128,7 @@ export class PlatformStack extends Stack {
             allowGroups: [applicationSecurityGroup.getSecurityGroup(), queueTasksSecurityGroup],
             databaseName: `${resourcePrefix}-database`,
             vpcResource,
-            APP_ENV: environment.getEnvironmentVars().APP_ENV,
+            APP_ENV: config.APP_ENV,
         });
 
         const redisResource = new RedisCacheClusterResource(this, `${idPrefix}RedisCluster`, {
@@ -153,7 +151,7 @@ export class PlatformStack extends Stack {
             .append("SQS_QUEUE", jobQueue.queueName);
 
         new CfnOutput(this, `${idPrefix}AppHashInfo`, {
-            value: environment.getEnvironmentVars().APP_VERSION_HASH,
+            value: config.APP_VERSION_HASH,
             description: "App Version",
         });
 
@@ -164,12 +162,12 @@ export class PlatformStack extends Stack {
 
         const initMigrateContainer = applicationServiceDefinition.addInitContainer(
             images.getDeploymentImage(),
-            environment.getEnvironmentVars(),
+            config,
             applicationLogGroup,
         );
         applicationServiceDefinition.addApplicationContainer(
             images.getWebserverImage(),
-            environment.getEnvironmentVars(),
+            config,
             applicationLogGroup,
             initMigrateContainer,
         );
@@ -198,7 +196,7 @@ export class PlatformStack extends Stack {
         new QueueResource(this, `${idPrefix}QueuedJobs`, {
             vpcResource,
             deploymentController: DeploymentControllerType.ECS,
-            environment: environment.getEnvironmentVars(),
+            environment: config,
             image: images.getQueueImage(),
             queue: jobQueue,
             queueLogGroup: queueWorkerLogGroup,
@@ -208,17 +206,18 @@ export class PlatformStack extends Stack {
             },
         });
 
-        new DomainResource(this, `${idPrefix}DomainSetupResource`, {
-            loadBalancer: alb.getLoadBalancer(),
-            cloudfrontDistribution: assetsStorageBucket.getDistribution(),
-            stage: environment.getEnvironmentVars().APP_ENV as ApplicationType,
-            region,
-            prefix: idPrefix,
-        });
-
         new JumpboxResource(this, `${idPrefix}JumpBoxResource`, {
             vpc: vpcResource.getVpc(),
             rdsSecurityGroup: db.getSecurityGroup(),
+        });
+
+        new DomainResource(this, `${idPrefix}DomainSetupResource`, {
+            loadBalancer: alb.getLoadBalancer(),
+            cloudfrontDistribution: assetsStorageBucket.getDistribution(),
+            stage: config.APP_ENV as ApplicationType,
+            region: env.region!,
+            idPrefix,
+            environmentResource: environment
         });
     }
 

@@ -104,13 +104,13 @@ export class ConsentBannerStack extends Stack {
         });
 
         const zone = HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
-            hostedZoneId: environment.getEnvironmentVars().HOSTED_ZONE_ID,
-            zoneName: environment.getEnvironmentVars().APP_MAIN_DOMAIN,
+            hostedZoneId: config.HOSTED_ZONE_ID,
+            zoneName: config.APP_MAIN_DOMAIN,
         });
 
         new ARecord(this, `${idPrefix}BannerSubdomainRecord`, {
             zone,
-            recordName: "banner",
+            recordName: config.BANNER_SUBDOMAIN,
             target: RecordTarget.fromAlias(new CloudFrontTarget(cdnDistribution)),
         });
     }

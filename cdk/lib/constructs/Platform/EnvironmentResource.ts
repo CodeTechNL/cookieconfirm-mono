@@ -18,7 +18,7 @@ interface EnvironmentResourceProps {
 type EnvVars = EnvironmentVars;
 
 export class EnvironmentResource extends Construct {
-    private environmentVars: EnvVars;
+    private readonly environmentVars: EnvVars;
 
     constructor(scope: Construct, id: string, props: EnvironmentResourceProps) {
         super(scope, id);
@@ -30,6 +30,7 @@ export class EnvironmentResource extends Construct {
 
         // 2) Computed values bouwen
         const computed: ComputedEnvVars = {
+
             S3_BANNER_ASSETS_BUCKET: `cdk-${resourcePrefix}-banner-assets-bucket`,
             S3_BANNER_COMPONENTS_BUCKET: `cdk-${resourcePrefix}-banner-components-bucket`,
             SCANNER_EVENT_BRIDGE_CONNECTION_NAME: `${resourcePrefix}-scanner-connection`,
@@ -46,6 +47,7 @@ export class EnvironmentResource extends Construct {
             OLD_ASSETS_DOMAIN: `assets.${envFromSsm.APP_MAIN_DOMAIN}`, // assets.cookieconfirm.tech
             APP_URL: `https://${envFromSsm.APP_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}`, // Platform URL https://platform.cookieconfirm.tech/
             ASSET_URL: `https://${envFromSsm.APP_PLATFORM_ASSETS_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}/${version}`, // cdn.cookieconfirm.tech/{HASH}/*
+            PLATFORM_ASSETS_URL: `${envFromSsm.APP_PLATFORM_ASSETS_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}`,
         };
 
         // 3) Alles samenvoegen: static ? ssm ? computed
@@ -54,6 +56,11 @@ export class EnvironmentResource extends Construct {
             ...envFromSsm,
             ...computed,
         };
+
+
+        console.log('Dumping console.log')
+        console.log(this.environmentVars.APP_MAIN_DOMAIN)
+        console.log(this.environmentVars.TURNSTILE_SECRET_KEY)
     }
 
     public getEnvironmentVars(): EnvVars {
@@ -62,6 +69,7 @@ export class EnvironmentResource extends Construct {
 
     public append(key: AppendableVars, value: string) {
         (this.environmentVars as AppendableEnvVars)[key] = value;
+
         return this;
     }
 }

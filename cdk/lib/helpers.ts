@@ -1,6 +1,7 @@
 import * as path from "path";
 import { App } from "aws-cdk-lib";
 import { ApplicationType } from "./types/ApplicationType";
+import { execSync } from "node:child_process";
 
 export const fromRoot = (...paths: string[]) => path.join(__dirname, "../../", ...paths);
 
@@ -46,7 +47,29 @@ export const getResourcePrefix = (app: App): string => {
 
 export const getAwsEnv = (): { region: string; account: string } => {
     return {
-        region: process.env.CDK_DEFAULT_REGION!,
-        account: process.env.CDK_DEFAULT_ACCOUNT!,
+        region: process.env.AWS_REGION!,
+        account: process.env.AWS_ACCOUNT!,
     };
 };
+
+export function loadAwsProfileEnv(profile: string) {
+    const out = execSync(
+        `aws configure export-credentials --profile ${profile} --format env`,
+        { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] }
+    );
+
+    for (const rawLine of out.split("\n")) {
+        const line = rawLine.trim();
+        if (!line) continue;
+
+        // accepteer zowel: KEY=VALUE als: export KEY=VALUE
+        const cleaned = line.startsWith("export ") ? line.slice(7).trim() : line;
+        const eq = cleaned.indexOf("=");
+        if (eq === -1) continue;
+
+        const key = cleaned.slice(0, eq).trim();
+        const value = cleaned.slice(eq + 1).trim().replace(/^['"]|['"]$/g, "");
+
+        process.env[key] = value;
+    }
+}

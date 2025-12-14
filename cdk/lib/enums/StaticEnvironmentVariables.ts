@@ -103,6 +103,7 @@ const ENV_KEYS = [
     "HOSTED_ZONE_ID",
     "APP_PLATFORM_ASSETS_SUBDOMAIN",
     "BANNER_SUBDOMAIN",
+    "REGION_CERTIFICATE_ARN"
 ] as const;
 
 export type EnvKey = (typeof ENV_KEYS)[number];
@@ -134,6 +135,7 @@ export const COMPUTED_ENV_KEYS = [
     "OLD_ASSETS_DOMAIN",
     "S3_BANNER_ASSETS_BUCKET",
     "S3_BANNER_COMPONENTS_BUCKET",
+    "PLATFORM_ASSETS_URL"
 ] as const;
 
 export type ComputedEnvKey = (typeof COMPUTED_ENV_KEYS)[number];

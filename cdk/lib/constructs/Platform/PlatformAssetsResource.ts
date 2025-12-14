@@ -38,6 +38,7 @@ export class PlatformAssetsResource extends Construct {
 
         const certificate = Certificate.fromCertificateArn(this, `${prefix}SslCertificate`, certificateArn);
 
+        console.log('Desired domain: ' + domain)
         this.distribution = new Distribution(this, `${prefix}SiteDistribution`, {
             comment: "CDN for serving banner assets",
             defaultRootObject: "index.html",
