@@ -13,3 +13,4 @@ cdk.out
 banner/dist
 .env
 .DS_Store
+cdk.context.json
