@@ -2,7 +2,6 @@ import { Construct } from "constructs";
 import {
     Compatibility,
     ContainerDefinition,
-    ContainerDefinitionOptions,
     ContainerDependencyCondition,
     ContainerImage,
     CpuArchitecture,
@@ -13,25 +12,29 @@ import {
 } from "aws-cdk-lib/aws-ecs";
 import { Role } from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
-import { DefaultEnvironmentVariablesInterface } from "../../interfaces/DefaultEnvironmentVariablesInterface";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
+import {EnvironmentVars} from "../../enums/StaticEnvironmentVariables";
 
 type TaskDefinitionProps = {
     taskRole: Role;
+    resourcePrefix: string;
 };
 
 export class TaskDefinitionResource extends Construct {
     private readonly taskDefinition: TaskDefinition;
+    private readonly resourcePrefix: string;
 
     constructor(scope: Construct, id: string, props: TaskDefinitionProps) {
         super(scope, id);
 
-        const { taskRole } = props;
+        const { taskRole, resourcePrefix } = props;
+
+        this.resourcePrefix = resourcePrefix;
 
         this.taskDefinition = new TaskDefinition(scope, id + "-resource", {
             compatibility: Compatibility.EC2_AND_FARGATE,
             cpu: "256",
-            family: "api-task-family",
+            family: `${this.resourcePrefix}-api-task-family`,
             memoryMiB: "512",
             taskRole,
             runtimePlatform: {
@@ -41,25 +44,25 @@ export class TaskDefinitionResource extends Construct {
         });
     }
 
-    addInitContainer(image: DockerImageAsset, environment: DefaultEnvironmentVariablesInterface, logGroup: LogGroup) {
-        return this.taskDefinition.addContainer("init-migrate", {
+    addInitContainer(image: DockerImageAsset, environment: EnvironmentVars, logGroup: LogGroup) {
+        return this.taskDefinition.addContainer(`${this.resourcePrefix}-init-migrate`, {
             essential: false,
             image: ContainerImage.fromDockerImageAsset(image),
             environment,
             logging: LogDriver.awsLogs({
                 logGroup,
-                streamPrefix: "init-migrate",
+                streamPrefix: `${this.resourcePrefix}-init-migrate`,
             }),
         });
     }
 
     addApplicationContainer(
         image: DockerImageAsset,
-        environment: DefaultEnvironmentVariablesInterface,
+        environment: EnvironmentVars,
         applicationLogGroup: LogGroup,
         initContainer: ContainerDefinition,
     ) {
-        const applicationContainer = this.taskDefinition.addContainer("app-container", {
+        const applicationContainer = this.taskDefinition.addContainer(`${this.resourcePrefix}-app-container`, {
             cpu: 256,
             environment,
             essential: true,

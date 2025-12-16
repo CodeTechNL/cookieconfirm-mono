@@ -2,7 +2,6 @@
 import * as cdk from "aws-cdk-lib";
 import {getAwsEnv, getIdPrefix, getResourcePrefix, loadAwsProfileEnv, uuid} from "../lib/helpers";
 import { PlatformStack } from "../lib/stacks/platform-stack";
-import { FoundationStack } from "../lib/stacks/PlatformStack/foundation-stack";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -13,17 +12,8 @@ const resourcePrefix = getResourcePrefix(app);
 const env = getAwsEnv();
 const version = uuid();
 
-// const foundationStack = new FoundationStack(app, `FoundationStack`, {
-//     resourcePrefix,
-//     stackName: `${idPrefix}FoundationStack`,
-//     env,
-//     idPrefix,
-//     version,
-// });
-
 new PlatformStack(app, `PlatformStack`, {
     stackName: `${idPrefix}PlatformStack`,
-    // environmentVariables: foundationStack.getEnvironmentResource(),
     idPrefix,
     resourcePrefix,
     version,
@@ -32,7 +22,5 @@ new PlatformStack(app, `PlatformStack`, {
     },
     env,
 });
-
-// platformStack.addDependency(foundationStack);
 
 app.synth();

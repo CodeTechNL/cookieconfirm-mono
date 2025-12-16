@@ -18,11 +18,11 @@ import { PlatformAssetsResource } from "../constructs/Platform/PlatformAssetsRes
 import { PlatformStorageResource } from "../constructs/Platform/S3/PlatformStorageResource";
 import { QueueResource } from "../constructs/Platform/QueueResource";
 import { Queue } from "aws-cdk-lib/aws-sqs";
-import { EnvironmentResource } from "../constructs/Platform/EnvironmentResource";
 import { JumpboxResource } from "../constructs/Platform/JumpboxResource";
 import {DomainResource} from "../constructs/Platform/DomainSetupResource";
 import {ApplicationType} from "../types/ApplicationType";
 import {EnvironmentVariables} from "../patterns/EnvironmentVariables";
+import {UpsertSsmParameter} from "../constructs/Ssm/UpsertSsmParameter";
 
 interface PlatformAssetsStackProps extends StackProps {
     version: string;
@@ -40,7 +40,7 @@ export class PlatformStack extends Stack {
         const { version, idPrefix, resourcePrefix, env } = props;
 
         const envPattern = new EnvironmentVariables(this, `${idPrefix}EnvironmentVariables`, {
-            idPrefix, resourcePrefix, version
+            idPrefix, resourcePrefix, version, env
         })
 
         const { baseDockerImage } = props.cdk;
@@ -60,7 +60,8 @@ export class PlatformStack extends Stack {
         });
 
         const vpcResource = new VpcResource(this, `${idPrefix}Vpc`, {
-            prefix: idPrefix,
+            idPrefix,
+            resourcePrefix
         });
 
         const user = new User(this, `${idPrefix}DeploymentUser`, {});
@@ -78,9 +79,10 @@ export class PlatformStack extends Stack {
         });
 
         const alb = new ApplicationLoadBalancerResource(this, `${idPrefix}ApplicationALB`, {
+            resourcePrefix,
             vpcResource,
-            prefix: idPrefix,
-            certificateArn: config.REGION_CERTIFICATE_ARN,
+            idPrefix,
+            certificateArn: config.REGION_CERTIFICATE_ARN
         });
 
         // Fargate Service Things
@@ -108,13 +110,14 @@ export class PlatformStack extends Stack {
         applicationStorageBucket.grantReadWrite(taskRole);
 
         const applicationServiceDefinition = new TaskDefinitionResource(this, `${idPrefix}ApplicationFargateServiceDefinition`, {
-            taskRole,
+            resourcePrefix,
+            taskRole
         });
 
         const applicationSecurityGroup = new SecurityGroupResource(this, `${idPrefix}ApplicationSgResource`, {
             vpcResource,
             loadBalancerSecurityGroup: alb.getLoadBalancerSecurityGroup(),
-            prefix: idPrefix,
+            idPrefix: idPrefix,
         });
 
         const queueTasksSecurityGroup = new SecurityGroup(this, `${idPrefix}BackgroundTaskSG`, {
@@ -124,16 +127,19 @@ export class PlatformStack extends Stack {
         });
 
         const db = new PlatformDatabaseResource(this, `${idPrefix}PlatformDatabaseResource`, {
-            prefix: idPrefix,
+            resourcePrefix,
+            idPrefix,
             allowGroups: [applicationSecurityGroup.getSecurityGroup(), queueTasksSecurityGroup],
             databaseName: `${resourcePrefix}-database`,
             vpcResource,
-            APP_ENV: config.APP_ENV,
+            APP_ENV: config.APP_ENV
         });
 
         const redisResource = new RedisCacheClusterResource(this, `${idPrefix}RedisCluster`, {
+            idPrefix,
+            resourcePrefix,
             allowConnections: [applicationSecurityGroup.getSecurityGroup(), queueTasksSecurityGroup],
-            vpc: vpcResource.getVpc(),
+            vpc: vpcResource.getVpc()
         });
 
         const redis = redisResource.getRedis();
@@ -142,16 +148,14 @@ export class PlatformStack extends Stack {
             .append("DB_HOST", db.getDatabase().dbInstanceEndpointAddress)
             .append("DB_READ_HOST", db.getDatabase().dbInstanceEndpointAddress)
             .append("DB_WRITE_HOST", db.getDatabase().dbInstanceEndpointAddress)
-            .append("DB_PORT", db.getDatabase().dbInstanceEndpointPort)
             .append("AWS_BUCKET", applicationStorageBucket.bucketName)
             .append("AWS_BUCKET_ASSETS", assetsStorageBucket.getBucket().bucketName)
             .append("REDIS_HOST", redis.attrRedisEndpointAddress)
-            .append("REDIS_PORT", `${redis.port}`)
             .append("SQS_PREFIX", `https://sqs.${props!.env!.region}.amazonaws.com/${this.account}`)
             .append("SQS_QUEUE", jobQueue.queueName);
 
         new CfnOutput(this, `${idPrefix}AppHashInfo`, {
-            value: config.APP_VERSION_HASH,
+            value: config.APP_VERSION_HASH!,
             description: "App Version",
         });
 
@@ -160,11 +164,18 @@ export class PlatformStack extends Stack {
             description: "SQS Queue URL",
         });
 
+        new UpsertSsmParameter(this, {
+            idPrefix,
+            parameterName: "DB_HOST",
+            stringValue: db.getDatabase().dbInstanceEndpointAddress
+        })
+
         const initMigrateContainer = applicationServiceDefinition.addInitContainer(
             images.getDeploymentImage(),
             config,
             applicationLogGroup,
         );
+
         applicationServiceDefinition.addApplicationContainer(
             images.getWebserverImage(),
             config,
@@ -194,6 +205,8 @@ export class PlatformStack extends Stack {
         jobQueue.grantSendMessages(applicationServiceDefinition.getTasDefinition().obtainExecutionRole());
 
         new QueueResource(this, `${idPrefix}QueuedJobs`, {
+            idPrefix,
+            resourcePrefix,
             vpcResource,
             deploymentController: DeploymentControllerType.ECS,
             environment: config,
@@ -203,7 +216,7 @@ export class PlatformStack extends Stack {
             securityGroup: applicationSecurityGroup.getSecurityGroup(),
             resources: {
                 db: db.getDatabase(),
-            },
+            }
         });
 
         new JumpboxResource(this, `${idPrefix}JumpBoxResource`, {

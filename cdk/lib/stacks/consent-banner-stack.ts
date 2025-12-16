@@ -1,4 +1,4 @@
-import { Stack, StackProps } from "aws-cdk-lib";
+import {Environment, Stack, StackProps} from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { AthenaConsentStore } from "../patterns/AthenaConsentStore";
 import { DeliveryStream } from "../patterns/DeliveryStream";
@@ -19,14 +19,20 @@ import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 
 interface ConsentBannerStackProps extends StackProps {
     idPrefix: string;
-    environment: EnvironmentResource;
+    env: Environment,
+    resourcePrefix: string
 }
 
 export class ConsentBannerStack extends Stack {
     constructor(scope: Construct, id: string, props: ConsentBannerStackProps) {
         super(scope, id, props);
 
-        const { idPrefix, environment } = props;
+
+        const { idPrefix, env, resourcePrefix } = props;
+
+        const environment = new EnvironmentResource(this, `${idPrefix}EnvironmentVariables`, {
+            env, idPrefix, resourcePrefix
+        })
 
         const config = environment.getEnvironmentVars();
 
@@ -34,10 +40,10 @@ export class ConsentBannerStack extends Stack {
             idPrefix,
             storagePathS3: config.ATHENA_CONSENT_LOGS_STORAGE_PATH_S3, // athenaConfig.storagePathS3,
             account: this.account,
-            workGroupName: config.ATHENA_CONSENT_LOGS_WORK_GROUP, // athenaConfig.workGroup,
-            bucketName: config.ATHENA_CONSENT_LOGS_RAW_BUCKET, // athenaConfig.rawBucket,
-            databaseName: config.ATHENA_CONSENT_LOGS_DATABASE, // athenaConfig.database,
-            tableName: config.ATHENA_CONSENT_LOGS_TABLE, // athenaConfig.table
+            workGroupName: config.ATHENA_CONSENT_LOGS_WORK_GROUP,
+            bucketName: config.ATHENA_CONSENT_LOGS_RAW_BUCKET,
+            databaseName: config.ATHENA_CONSENT_LOGS_DATABASE,
+            tableName: config.ATHENA_CONSENT_LOGS_TABLE,
         });
 
         new DeliveryStream(this, `${idPrefix}DeliveryStreamResource`, {

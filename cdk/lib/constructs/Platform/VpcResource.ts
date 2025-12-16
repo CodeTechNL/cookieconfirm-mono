@@ -2,7 +2,8 @@ import { Construct } from "constructs";
 import { GatewayVpcEndpointAwsService, InterfaceVpcEndpoint, InterfaceVpcEndpointAwsService, Port, SecurityGroup, SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
 
 type VpcProps = {
-    prefix: string;
+    idPrefix: string;
+    resourcePrefix: string;
 };
 
 export class VpcResource extends Construct {
@@ -28,9 +29,10 @@ export class VpcResource extends Construct {
     constructor(scope: Construct, id: string, props: VpcProps) {
         super(scope, id);
 
-        const { prefix } = props;
+        const { idPrefix, resourcePrefix } = props;
 
-        this.vpc = new Vpc(this, `${prefix}VpcResource`, {
+        this.vpc = new Vpc(this, `${idPrefix}VpcResource`, {
+            vpcName: `${resourcePrefix}-vpc`,
             natGateways: 0,
             subnetConfiguration: [this.SUBNET_APPLICATION, this.SUBNET_ISOLATED],
             gatewayEndpoints: {
@@ -41,35 +43,35 @@ export class VpcResource extends Construct {
         });
 
         // VPC - Private Links
-        this.ecr = this.getVpc().addInterfaceEndpoint("ecr-gateway", {
+        this.ecr = this.getVpc().addInterfaceEndpoint(`${idPrefix}EcrGateway`, {
             service: InterfaceVpcEndpointAwsService.ECR,
         });
 
-        this.ecs = this.getVpc().addInterfaceEndpoint("ecs-gateway", {
+        this.ecs = this.getVpc().addInterfaceEndpoint(`${idPrefix}EcsGateway`, {
             service: InterfaceVpcEndpointAwsService.ECS,
         });
 
-        this.ecsAgent = this.getVpc().addInterfaceEndpoint(`${prefix}EcsAgentGateway`, {
+        this.ecsAgent = this.getVpc().addInterfaceEndpoint(`${idPrefix}EcsAgentGateway`, {
             service: InterfaceVpcEndpointAwsService.ECS_AGENT,
         });
 
-        this.ecsTelemetry = this.getVpc().addInterfaceEndpoint(`${prefix}EcsTelemetryGateway`, {
+        this.ecsTelemetry = this.getVpc().addInterfaceEndpoint(`${idPrefix}EcsTelemetryGateway`, {
             service: InterfaceVpcEndpointAwsService.ECS_TELEMETRY,
         });
 
-        this.sqsEndpoint = this.getVpc().addInterfaceEndpoint(`${prefix}SqsGateway`, {
+        this.sqsEndpoint = this.getVpc().addInterfaceEndpoint(`${idPrefix}SqsGateway`, {
             service: InterfaceVpcEndpointAwsService.SQS,
         });
 
-        this.secretsManager = this.getVpc().addInterfaceEndpoint(`${prefix}SecretsManager`, {
+        this.secretsManager = this.getVpc().addInterfaceEndpoint(`${idPrefix}SecretsManager`, {
             service: InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
         });
 
-        this.cloudWatch = this.getVpc().addInterfaceEndpoint(`${prefix}Cloudwatch`, {
+        this.cloudWatch = this.getVpc().addInterfaceEndpoint(`${idPrefix}Cloudwatch`, {
             service: InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
         });
 
-        this.getVpc().addInterfaceEndpoint(`${prefix}EcrDockerGateway`, {
+        this.getVpc().addInterfaceEndpoint(`${idPrefix}EcrDockerGateway`, {
             service: InterfaceVpcEndpointAwsService.ECR_DOCKER,
         });
     }

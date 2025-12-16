@@ -18,7 +18,8 @@ type PlatformDatabaseProps = {
     databaseName: string;
     allowGroups: IConnectable[];
     APP_ENV: string;
-    prefix: string;
+    idPrefix: string;
+    resourcePrefix: string
 
     useSnapshot?: boolean;
     snapshotIdentifier?: string;
@@ -31,13 +32,13 @@ export class PlatformDatabaseResource extends Construct {
     constructor(scope: Construct, id: string, props: PlatformDatabaseProps) {
         super(scope, id);
 
-        const { password, username } = this.getCredentials(props.prefix);
-        const { allowGroups, vpcResource } = props;
+        const { allowGroups, vpcResource, idPrefix, resourcePrefix } = props;
+        const { password, username } = this.getCredentials(idPrefix);
 
         const instanceIdentifier = "cc-cdk-sample-database";
         const databaseName = "cookieconfirmtest";
 
-        this.databaseSecurityGroup = new SecurityGroup(this, "database-SG", {
+        this.databaseSecurityGroup = new SecurityGroup(this, `${idPrefix}DatabaseSG`, {
             vpc: vpcResource.getVpc(),
             description: "SecurityGroup associated with the MySQL RDS Instance",
             allowAllOutbound: false,
@@ -69,7 +70,7 @@ export class PlatformDatabaseResource extends Construct {
             }
 
             // Restore vanuit snapshot, maar met jouw eigen user/password
-            this.database = new DatabaseInstanceFromSnapshot(scope, "primary-db", {
+            this.database = new DatabaseInstanceFromSnapshot(scope, `${idPrefix}MySqlDatabase`, {
                 ...commonProps,
                 snapshotIdentifier: props.snapshotIdentifier,
                 credentials: {
@@ -80,7 +81,7 @@ export class PlatformDatabaseResource extends Construct {
             });
         } else {
             // Nieuwe lege instance
-            this.database = new DatabaseInstance(scope, "primary-db", {
+            this.database = new DatabaseInstance(scope, `${idPrefix}MySqlDatabase`, {
                 ...commonProps,
                 credentials: Credentials.fromPassword(username, SecretValue.unsafePlainText(password)),
             });
@@ -99,10 +100,10 @@ export class PlatformDatabaseResource extends Construct {
         return this.databaseSecurityGroup;
     }
 
-    private getCredentials(prefix: string) {
-        const password = StringParameter.fromStringParameterName(this, `${prefix}DatabasePassword`, `/${prefix}/DB_PASSWORD`).stringValue;
+    private getCredentials(idPrefix: string) {
+        const password = StringParameter.fromStringParameterName(this, `${idPrefix}DatabasePassword`, `/${idPrefix}/DB_PASSWORD`).stringValue;
 
-        const username = StringParameter.fromStringParameterName(this, `${prefix}DatabaseUsername`, `/${prefix}/DB_USERNAME`).stringValue;
+        const username = StringParameter.fromStringParameterName(this, `${idPrefix}DatabaseUsername`, `/${idPrefix}/DB_USERNAME`).stringValue;
 
         return { password, username };
     }

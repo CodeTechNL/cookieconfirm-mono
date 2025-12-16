@@ -5,6 +5,8 @@ import { IConnectable, Port, SecurityGroup, Vpc } from "aws-cdk-lib/aws-ec2";
 type RedisCacheClusterProps = {
     vpc: Vpc;
     allowConnections: IConnectable[];
+    idPrefix: string;
+    resourcePrefix: string
 };
 
 export class RedisCacheClusterResource extends Construct {
@@ -13,16 +15,16 @@ export class RedisCacheClusterResource extends Construct {
     constructor(scope: Construct, id: string, props: RedisCacheClusterProps) {
         super(scope, id);
 
-        const { vpc, allowConnections } = props;
+        const { vpc, allowConnections, idPrefix, resourcePrefix } = props;
 
-        const redisSecurityGroup = new SecurityGroup(this, "redis-SG", {
+        const redisSecurityGroup = new SecurityGroup(this, `${idPrefix}RedisSG`, {
             vpc,
             description: "SecurityGroup associated with the ElastiCache Redis Cluster",
             allowAllOutbound: false,
         });
 
         // // ELASTICACHE
-        const redisSubnetGroup = new CfnSubnetGroup(this, "redis-subnet-group", {
+        const redisSubnetGroup = new CfnSubnetGroup(this, `${idPrefix}RedisSubnetGroup`, {
             description: "Redis Subnet Group",
             subnetIds: vpc.isolatedSubnets.map((s) => s.subnetId),
             cacheSubnetGroupName: "RedisSubnetGroup",
@@ -31,7 +33,7 @@ export class RedisCacheClusterResource extends Construct {
         this.redis = new CfnCacheCluster(this, "RedisCacheClusterResource", {
             cacheNodeType: "cache.t3.small",
             cacheSubnetGroupName: redisSubnetGroup.cacheSubnetGroupName,
-            clusterName: "redis-cluster",
+            clusterName: `${resourcePrefix}-redis-cluster`,
             engine: "redis",
             engineVersion: "6.x",
             numCacheNodes: 1,

@@ -19,8 +19,15 @@
 
     "____ CDK ______________________________________________": "",
     "cdk:deploy:banner": "cdk deploy --app 'tsx cdk/bin/consent-banner.ts' --all --require-approval never",
+    "cdk:deploy:cookie-scanner": "cdk deploy --app 'tsx cdk/bin/cookie-scanner.ts' --all --require-approval never",
     "cdk:deploy:platform": "cdk deploy --app 'tsx cdk/bin/platform.ts' --all --require-approval never",
-    "cdk:deploy:php": "cdk deploy --app 'tsx cdk/bin/php-image.ts' --all --require-approval never"
+    "cdk:destroy:platform": "cdk destroy --app 'tsx cdk/bin/platform.ts' --all --require-approval never",
+    "cdk:synth:platform": "cdk synth --app 'tsx cdk/bin/platform.ts' --all --require-approval never",
+    "cdk:deploy:php": "cdk deploy --app 'tsx cdk/bin/php-image.ts' --all --require-approval never",
+    "cdk:deploy:meilisearch": "cdk deploy --app 'tsx cdk/bin/meilisearch.ts' --all --require-approval never",
+
+    "cdk:destroy:cookie-scanner": "cdk destroy --app 'tsx cdk/bin/cookie-scanner.ts' --all --require-approval never",
+    "cdk:synth:cookie-scanner": "cdk synth --app 'tsx cdk/bin/cookie-scanner.ts' --all --require-approval never"
   },
   "workspaces": [
     "banner/*",

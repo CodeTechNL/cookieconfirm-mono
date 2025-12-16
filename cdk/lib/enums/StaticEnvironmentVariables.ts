@@ -1,6 +1,13 @@
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 
+/**
+ * =========================
+ * Static env vars (hardcoded)
+ *
+ * These env vars barely change between environments, so we can hardcode them here.
+ * =========================
+ */
 export const STATIC_ENV = {
     SCANNER_EVENT_BRIDGE_EVENT_DETAIL_TYPE: "completed",
     SCANNER_EVENT_BRIDGE_EVENT_SOURCE_NAME: "CookieScanner",
@@ -12,11 +19,11 @@ export const STATIC_ENV = {
     DB_CONNECTION: "mysql",
     DB_PORT: "3306",
 
-    REDIS_PORT: "6379",
     REDIS_DB: "0",
     REDIS_CACHE_CONNECTION: "default",
     REDIS_CLIENT: "phpredis",
     REDIS_PASSWORD: "null",
+    REDIS_PORT: "6379",
 
     SESSION_DRIVER: "redis",
     SESSION_STORE: "redis",
@@ -26,7 +33,7 @@ export const STATIC_ENV = {
     SESSION_DOMAIN: "null",
 
     CACHE_STORE: "redis",
-    QUEUE_CONNECTION: "redis",
+    QUEUE_CONNECTION: "sqs",
 
     FILAMENT_FILESYSTEM_DISK: "s3",
     FILESYSTEM_DISK: "s3",
@@ -44,8 +51,6 @@ export const STATIC_ENV = {
     MEMCACHED_HOST: "127.0.0.1",
 
     SCOUT_DRIVER: "meilisearch",
-    MEILISEARCH_HOST: "",
-    MEILISEARCH_KEY: "",
 
     NIGHTWATCH_TOKEN: "",
     NIGHTWATCH_REQUEST_SAMPLE_RATE: "1",
@@ -66,8 +71,14 @@ export const STATIC_ENV = {
 
 export type StaticEnvVars = typeof STATIC_ENV;
 
-// SSM keys (die je uit Parameter Store wilt trekken)
-const ENV_KEYS = [
+/**
+ * =========================
+ * Required SSM env vars
+ *
+ * Keys that need to be set up in the SSM Parameter Store before deploying. Passwords, usernames, API keys, etc.
+ * =========================
+ */
+export const ENV_KEYS = [
     "APP_KEY",
     "APP_ENV",
     "DB_PASSWORD",
@@ -88,37 +99,47 @@ const ENV_KEYS = [
     "VITE_BANNER_ASSETS_URL",
     "PADDLE_WEBHOOK_SECRET",
     "LAMBDA_WEBHOOKS_SECRET",
-    "AWS_LAMBDA_COOKIE_SCANNER_URL",
     "TURNSTILE_SITE_KEY",
     "TURNSTILE_SECRET_KEY",
     "DB_DATABASE",
     "APP_COMPANY_NAME",
-    "APP_SUBDOMAIN", // platform
-    "APP_MAIN_DOMAIN", // cookieconfirm.tech
+    "APP_SUBDOMAIN",
+    "APP_MAIN_DOMAIN",
     "CERTIFICATE_ARN",
-    "APP_VERSION_HASH", // later overridden
     "ATHENA_CONSENT_LOGS_RAW_BUCKET",
     "SCANNER_WEBHOOK_POST_ENDPOINT",
     "SCANNER_WEBHOOK_SEND_API_KEY",
     "HOSTED_ZONE_ID",
     "APP_PLATFORM_ASSETS_SUBDOMAIN",
     "BANNER_SUBDOMAIN",
-    "REGION_CERTIFICATE_ARN"
+    "REGION_CERTIFICATE_ARN",
+    "MEILISEARCH_KEY",
+    "MEILISEARCH_HOST",
 ] as const;
 
 export type EnvKey = (typeof ENV_KEYS)[number];
-
 export type SsmEnvVars = Record<EnvKey, string>;
 
-// Helper om alles uit SSM te trekken
+/**
+ * Load required SSM parameters
+ */
 export function loadEnvironment(scope: Construct, idPrefix: string): SsmEnvVars {
     return ENV_KEYS.reduce((acc, key) => {
-        acc[key] = StringParameter.valueForStringParameter(scope, `/${idPrefix}/${key}`);
+        acc[key] = StringParameter.valueForStringParameter(
+            scope,
+            `/${idPrefix}/${key}`
+        );
         return acc;
     }, {} as SsmEnvVars);
 }
 
-// Computed env keys
+/**
+ * =========================
+ * Computed env vars
+ *
+ * These env vars are computed based on other env vars. They are not hardcoded in the code, but are derived from other env vars.
+ * =========================
+ */
 export const COMPUTED_ENV_KEYS = [
     "APP_URL",
     "ASSET_URL",
@@ -135,25 +156,50 @@ export const COMPUTED_ENV_KEYS = [
     "OLD_ASSETS_DOMAIN",
     "S3_BANNER_ASSETS_BUCKET",
     "S3_BANNER_COMPONENTS_BUCKET",
-    "PLATFORM_ASSETS_URL"
+    "PLATFORM_ASSETS_URL",
+    "AWS_LAMBDA_COOKIE_SCANNER_URL",
+    "WEBHOOKS_COOKIE_SCANNER_RESULTS_ENDPOINT"
+
 ] as const;
 
 export type ComputedEnvKey = (typeof COMPUTED_ENV_KEYS)[number];
-export type ComputedEnvVars = Record<ComputedEnvKey, string>;
 
+/**
+ * APP_VERSION_HASH is optional (computed / overridden later)
+ */
+type OptionalComputedKeys = "APP_VERSION_HASH";
+
+export type ComputedEnvVars =
+    Record<Exclude<ComputedEnvKey, OptionalComputedKeys>, string> &
+    Partial<Record<OptionalComputedKeys, string>>;
+
+/**
+ * =========================
+ * Appendable env vars
+ *
+ * These env vars can be appended to the existing env vars. They will be
+ * generated during runtime of CDK, for example, the database host.
+ * =========================
+ */
 export type AppendableVars =
     | "DB_HOST"
     | "DB_READ_HOST"
     | "DB_WRITE_HOST"
-    | "DB_PORT"
     | "AWS_BUCKET"
     | "AWS_BUCKET_ASSETS"
     | "REDIS_HOST"
-    | "REDIS_PORT"
     | "SQS_PREFIX"
     | "SQS_QUEUE";
 
 export type AppendableEnvVars = Partial<Record<AppendableVars, string>>;
 
-// Volledige env type (inclusief latere appendable vars)
-export type EnvironmentVars = StaticEnvVars & SsmEnvVars & ComputedEnvVars & AppendableEnvVars;
+/**
+ * =========================
+ * Full env type
+ * =========================
+ */
+export type EnvironmentVars =
+    StaticEnvVars &
+    SsmEnvVars &
+    ComputedEnvVars &
+    AppendableEnvVars;

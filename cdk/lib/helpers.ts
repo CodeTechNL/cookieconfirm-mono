@@ -73,3 +73,7 @@ export function loadAwsProfileEnv(profile: string) {
         process.env[key] = value;
     }
 }
+
+export function extractCapitals(input: string): string {
+    return input.match(/[A-Z]/g)?.join('') ?? '';
+}

@@ -27,6 +27,8 @@ type QueueProps = {
     queue: Queue;
     image: DockerImageAsset;
     securityGroup: SecurityGroup;
+    idPrefix: string;
+    resourcePrefix: string;
     resources: {
         db: IDatabaseInstance;
     };
@@ -34,14 +36,14 @@ type QueueProps = {
 
 export class QueueResource extends QueueProcessingFargateService {
     constructor(scope: Construct, id: string, props: QueueProps) {
-        const { vpcResource, environment, image, queueLogGroup, queue, securityGroup, resources } = props;
+        const { vpcResource, environment, image, queueLogGroup, queue, securityGroup, resources, idPrefix, resourcePrefix } = props;
 
-        const queueCluster = new Cluster(scope, "queue-cluster", {
-            clusterName: "background-tasks",
+        const queueCluster = new Cluster(scope, `${idPrefix}QueueCluster`, {
+            clusterName: `${resourcePrefix}-queue-tasks`,
             vpc: vpcResource.getVpc(),
         });
 
-        const sqsPolicy = new Policy(scope, "fargate-task-sqs-policy", {
+        const sqsPolicy = new Policy(scope, `${idPrefix}FargateTaskSqsPolicy`, {
             statements: [
                 new PolicyStatement({
                     effect: Effect.ALLOW,

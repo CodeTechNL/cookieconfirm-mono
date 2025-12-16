@@ -8,7 +8,8 @@ import { ApplicationTargetGroupResource } from "./ApplicationTargetGroupResource
 
 type ApplicationLoadBalancerProps = {
     vpcResource: VpcResource;
-    prefix: string;
+    idPrefix: string;
+    resourcePrefix: string;
     certificateArn: string;
 };
 
@@ -22,29 +23,29 @@ export class ApplicationLoadBalancerResource extends Construct {
     constructor(scope: Construct, id: string, props: ApplicationLoadBalancerProps) {
         super(scope, id);
 
-        const { vpcResource, prefix, certificateArn } = props;
+        const { vpcResource, idPrefix, certificateArn, resourcePrefix } = props;
 
-        this.loadBalancer = new ApplicationLoadBalancer(scope, `id`, {
+        this.loadBalancer = new ApplicationLoadBalancer(scope, `${idPrefix}ApplicationLoadBalancer`, {
             http2Enabled: false,
             internetFacing: true,
-            loadBalancerName: "application",
+            loadBalancerName: `${resourcePrefix}-app`,
             vpc: vpcResource.getVpc(),
             vpcSubnets: {
                 subnetGroupName: vpcResource.SUBNET_APPLICATION.name,
             },
         });
 
-        this.loadBalancerSecurityGroup = new SecurityGroup(this, `${prefix}LoadBalancerSG`, {
+        this.loadBalancerSecurityGroup = new SecurityGroup(this, `${idPrefix}LoadBalancerSG`, {
             vpc: vpcResource.getVpc(),
             allowAllOutbound: true,
         });
 
         this.getLoadBalancer().addSecurityGroup(this.getLoadBalancerSecurityGroup());
 
-        const certificate = Certificate.fromCertificateArn(this, `${prefix}AlbCertificate`, certificateArn);
+        const certificate = Certificate.fromCertificateArn(this, `${idPrefix}AlbCertificate`, certificateArn);
 
         // HTTPS listener op 443 met certificaat
-        const httpsListener = this.getLoadBalancer().addListener(`${prefix}AlbHttpsListener`, {
+        const httpsListener = this.getLoadBalancer().addListener(`${idPrefix}AlbHttpsListener`, {
             open: true,
             port: 443,
             protocol: ApplicationProtocol.HTTPS,
@@ -52,15 +53,15 @@ export class ApplicationLoadBalancerResource extends Construct {
         });
 
         // Target group voor de app
-        this.targetGroup = new ApplicationTargetGroupResource(this, `${prefix}AlbTargetGroup`, {
+        this.targetGroup = new ApplicationTargetGroupResource(this, `${idPrefix}AlbTargetGroup`, {
             vpc: vpcResource.getVpc(),
         });
 
-        httpsListener.addTargetGroups(`${prefix}AlbListenerTargetGroup`, {
+        httpsListener.addTargetGroups(`${idPrefix}AlbListenerTargetGroup`, {
             targetGroups: [this.getHttpTargetGroup()],
         });
 
-        this.getLoadBalancer().addListener(`${prefix}AlbTargetGroup`, {
+        this.getLoadBalancer().addListener(`${idPrefix}AlbTargetGroup`, {
             port: 80,
             open: true,
             protocol: ApplicationProtocol.HTTP,
@@ -71,7 +72,7 @@ export class ApplicationLoadBalancerResource extends Construct {
             }),
         });
 
-        new CfnOutput(this, `${prefix}ApplicationLoadBalancerResource`, {
+        new CfnOutput(this, `${idPrefix}ApplicationLoadBalancerResource`, {
             value: this.getLoadBalancer().loadBalancerDnsName,
             description: "Application load balancer URL",
         });

@@ -25,7 +25,7 @@ export class DomainResource extends Construct {
 
         const config = environmentResource.getEnvironmentVars();
 
-        const hostedZone = HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
+        const hostedZone = HostedZone.fromHostedZoneAttributes(this, `${idPrefix}HostedZone`, {
             hostedZoneId: config.HOSTED_ZONE_ID,
             zoneName: config.APP_MAIN_DOMAIN,
         });
