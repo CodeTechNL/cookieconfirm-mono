@@ -54,7 +54,7 @@ export class QueueResource extends QueueProcessingFargateService {
         });
 
         const baseProps = {
-            assignPublicIp: false,
+            assignPublicIp: true,
             circuitBreaker: {
                 rollback: true,
             },

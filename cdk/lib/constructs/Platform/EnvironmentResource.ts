@@ -45,12 +45,16 @@ export class EnvironmentResource extends Construct {
             ATHENA_CONSENT_LOGS_STORAGE_PATH_S3: `${resourcePrefix}-consent-logs-raw`,
             REDIS_PREFIX: extractCapitals(idPrefix),
 
+
             BANNER_DOMAIN: `${envFromSsm.BANNER_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}`, // banner.cookieconfirm.tech
             OLD_ASSETS_DOMAIN: `assets.${envFromSsm.APP_MAIN_DOMAIN}`, // assets.cookieconfirm.tech
             APP_URL: `https://${envFromSsm.APP_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}`, // Platform URL https://platform.cookieconfirm.tech/
             ASSET_URL: `https://${envFromSsm.APP_PLATFORM_ASSETS_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}/${version}`, // cdn.cookieconfirm.tech/{HASH}/*
             PLATFORM_ASSETS_URL: `${envFromSsm.APP_PLATFORM_ASSETS_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}`,
             AWS_LAMBDA_COOKIE_SCANNER_URL: `https://sqs.${env.region}.amazonaws.com/${env.account}/${SCANNER_QUEUE_NAME}`,
+
+            AWS_DEFAULT_REGION: env.region!,
+            ATHENA_REGION: env.region!,
 
             // Webhook endpoints
             WEBHOOKS_COOKIE_SCANNER_RESULTS_ENDPOINT: `${appUrl}/webhooks/lambda/cookie-scanner-result`,

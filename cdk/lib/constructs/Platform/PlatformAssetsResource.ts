@@ -7,6 +7,7 @@ import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { BucketDeployment, CacheControl, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { fromRoot } from "../../helpers";
 import * as cdk from "aws-cdk-lib";
+import {PlatformAssetsCorsPolicy} from "../Cloudfront/ResponseHeaders/PlatformAssetsCorsPolicy";
 
 interface PlatformAssetsProps extends StackProps {
     bucketName: string;
@@ -51,6 +52,7 @@ export class PlatformAssetsResource extends Construct {
                 compress: true,
                 allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
                 viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                responseHeadersPolicy: new PlatformAssetsCorsPolicy(this, `${prefix}GlobalPlatformCorsPolicy`),
             },
             errorResponses: [
                 {
@@ -66,6 +68,10 @@ export class PlatformAssetsResource extends Construct {
                     responsePagePath: "/403.html", // pad in je S3 bucket / origin
                 },
             ],
+        });
+
+        this.distribution.addBehavior("/build/*", origin, {
+            responseHeadersPolicy: new PlatformAssetsCorsPolicy(this, `${prefix}PlatformAssetsCorsPolicy`),
         });
 
         new BucketDeployment(this, `${prefix}DeployBannerAssets`, {

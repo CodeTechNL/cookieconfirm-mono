@@ -1,14 +1,14 @@
 import { Construct } from "constructs";
 import {
-    AllowedMethods,
+    AllowedMethods, BehaviorOptions,
     CachePolicy,
     Distribution,
     FunctionCode,
     FunctionEventType,
-    IOrigin,
+    IOrigin, IResponseHeadersPolicy,
     OriginProtocolPolicy,
     OriginRequestPolicy,
-    PriceClass,
+    PriceClass, ResponseHeadersPolicy,
     SecurityPolicyProtocol,
     ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
@@ -22,11 +22,13 @@ type AssetsDistributionResourceProps = {
     origin: IOrigin;
     domainNames: string[];
     certificate: ICertificate;
+    idPrefix: string
 };
 
 export class CloudfrontDistribution extends Distribution {
     constructor(scope: Construct, id: string, props: AssetsDistributionResourceProps) {
-        const { origin, certificate, domainNames } = props;
+        const {origin, certificate, domainNames, idPrefix} = props;
+        const corsPolicy = ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS_WITH_PREFLIGHT;
 
         super(scope, id, {
             comment: "CDN for serving banner assets",
@@ -41,9 +43,11 @@ export class CloudfrontDistribution extends Distribution {
                 compress: true,
                 allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
                 viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                responseHeadersPolicy: corsPolicy,
             },
         });
     }
+
 
     public addInitJsonBehavior(path: string, origin: IOrigin, cachePolicy: CachePolicy): this {
         const countryHeaderPolicy = new CountryHeaderPolicy(this, `CountryHeaderPolicy`);
@@ -54,6 +58,7 @@ export class CloudfrontDistribution extends Distribution {
             cachePolicy: cachePolicy,
             originRequestPolicy: countryHeaderPolicy,
             compress: true,
+            responseHeadersPolicy: ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS_WITH_PREFLIGHT,
             functionAssociations: [
                 {
                     eventType: FunctionEventType.VIEWER_RESPONSE,
@@ -73,13 +78,17 @@ export class CloudfrontDistribution extends Distribution {
         });
     }
 
-    public addDefaultBehavior(path: string, origin: IOrigin, cachePolicy: CachePolicy) {
-        this.addBehavior(path, origin, {
+    public addDefaultBehavior(path: string, origin: IOrigin, cachePolicy: CachePolicy, responseHeader?: IResponseHeadersPolicy) {
+        const props: BehaviorOptions = {
+            origin,
             viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
             allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-            cachePolicy: cachePolicy,
+            cachePolicy,
             compress: true,
-        });
+            ...(responseHeader ? { responseHeadersPolicy: responseHeader } : {})
+        };
+
+        this.addBehavior(path, origin, props);
 
         return this;
     }

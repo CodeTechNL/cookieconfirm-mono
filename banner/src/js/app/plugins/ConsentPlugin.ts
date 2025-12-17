@@ -29,6 +29,7 @@ class ConsentPlugin extends AbstractPlugin {
         };
 
         console.log(payload);
+        // @ts-ignore
         fetch(`${import.meta.env.VITE_APP_URL}/api/v1/store-consent`, {
             method: "POST",
             headers: {

@@ -22,7 +22,8 @@ class CdnService {
     }
 
     async getInitFile(withLocation: boolean): Promise<{ banner: InitResponseInterface; country: string | null }> {
-        const endpoint = withLocation ? "init-with-location" : "init";
+        // const endpoint = withLocation ? "init-with-location" : "init";
+        const endpoint = "init";
         const response = await this.makeRequest(`${endpoint}.json`);
         const data = (await response.json()) as InitResponseInterface;
 
@@ -39,4 +40,5 @@ class CdnService {
     }
 }
 
+// @ts-ignore
 export default new CdnService(LocalStorageService, import.meta.env.VITE_CDN_URL, window.ccDomain);
