@@ -3,6 +3,7 @@
 #consent-banner,
 #consent-banner * {
     box-sizing: border-box;
+    text-align: left;
 }
 
 /* Base banner styles */

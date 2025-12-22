@@ -1,62 +1,87 @@
-import { CookieListType } from "@/js/app/interfaces/CookieDataInterfaces";
 import { ButtonTypes, ConsentTypes, TranslationTypes } from "@/js/app/types";
+import { CookieListType } from '@/js/app/interfaces/DataFeeds/CookieInterface'
 
 export interface StylingInterface {
-    version: number;
     banner: BannerDesignInterface;
     translations: Record<TranslationTypes, string>;
     cookies: CookieListType;
 }
 
-export interface BannerDesignInterface {
-    design: {
-        consent: {
-            buttons: Record<ButtonTypes, ButtonStyle>;
-            borderRadius: string;
-            border: string;
-        };
-        switches: {
-            activeBg: string;
-            inactiveBg: string;
-            circle: string;
-        };
-        general: {
-            fontColor: string;
-            fontSize: string;
-            tabs: string;
-            company_logo: string;
-        };
-    };
-    branding: {
-        icon: string;
-        logo: string;
-        url: string;
-        name: string;
-        position: string;
-    };
-    icon: {
-        icon: string;
-        logo: string;
-        url: string;
-        name: string;
-    };
-    functional: {
-        defaultConsent: ConsentTypes[];
-        buttons: ButtonTypes[];
-        implicitConsent: boolean;
-        dismissButton: boolean;
-        customizeSelectionButton: boolean;
-    };
-    domain: {
-        cookie_domain: string;
-        website: string;
-        parent: string | null;
-        subdomain: boolean;
-    };
+export interface ConsentButtonInterface {
+  buttons: Record<ButtonTypes, ButtonStyle>;
+  borderRadius: string;
+  border: string;
+}
+
+export interface ConsentSwitchesInterface {
+  activeBg: string;
+  inactiveBg: string;
+  circle: string;
+}
+
+export interface GeneralConsentBannerDesignInterface {
+  fontColor: string;
+  fontSize: string;
+  tabs: string;
+  company_logo: string;
+}
+
+export interface CookieIconInterface {
+  icon: string;
+  logo: string;
+  url: string;
+  name: string;
+}
+
+export interface CookieIconStorageInterface {
+  icon: string
+  position: CookieIconPosition
+  directions: {
+    x: string
+    y: string
+  }
+}
+
+export type CookieIconPosition = 'left' | 'right'
+
+
+export interface CookieBannerBrandingInterface {
+  icon: string;
+  logo: string;
+  url: string;
+  name: string;
+  position: 'left'|'right';
+}
+
+export interface CookieBannerFunctionsInterface {
+  defaultConsent: ConsentTypes[];
+  buttons: ButtonTypes[];
+  implicitConsent: boolean;
+  dismissButton: boolean;
+  customizeSelectionButton: boolean;
+}
+
+export interface CookieDomainInterface {
+  cookie_domain: string;
+  website: string;
+  parent: string | null;
+  subdomain: boolean;
 }
 
 export interface ButtonStyle {
-    bg: string;
-    color: string;
-    border: string | null;
+  bg: string;
+  color: string;
+  border: string | null;
+}
+
+export interface BannerDesignInterface {
+    design: {
+        consent: ConsentButtonInterface;
+        switches: ConsentSwitchesInterface;
+        general: GeneralConsentBannerDesignInterface;
+    };
+    branding: CookieBannerBrandingInterface;
+    icon: CookieIconInterface
+    functional: CookieBannerFunctionsInterface
+    domain: CookieDomainInterface;
 }

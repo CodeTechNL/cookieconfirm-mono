@@ -1,0 +1,8 @@
+{
+  "version": 1759599293,
+  "geoRules": ["de"],
+  "cookieDomain": "cookie-confirm.test",
+  "availableLanguages": ["en", "de"],
+  "fallbackLanguage": "en",
+  "excludePaths": ["/sample"]
+}

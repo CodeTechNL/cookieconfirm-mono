@@ -1,0 +1,151 @@
+{
+  "functional": [
+    {
+      "platform": "Cookie Confirm",
+      "privacy_policy": null,
+      "total_cookies": 2,
+      "cookies": {
+        "CC_p_consent_id": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        },
+        "CC_p_settings": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        }
+      }
+    },
+    {
+      "platform": "Lightspeed",
+      "privacy_policy": "https://www.lightspeedhq.com/legal/privacy-policy/",
+      "total_cookies": 4,
+      "cookies": {
+        "COOKIELAW_ADS": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        },
+        "COOKIELAW_STATS": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        },
+        "COOKIELAW_SOCIAL": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        },
+        "COOKIELAW": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        }
+      }
+    },
+    {
+      "platform": "Unknown",
+      "privacy_policy": null,
+      "total_cookies": 1,
+      "cookies": {
+        "session_id": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "session"
+        }
+      }
+    },
+    {
+      "platform": "Cloudflare",
+      "privacy_policy": null,
+      "total_cookies": 1,
+      "cookies": {
+        "__cf_bm": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        }
+      }
+    }
+  ],
+  "analytics": [
+    {
+      "platform": "Google",
+      "privacy_policy": "https://business.safety.google/privacy/",
+      "total_cookies": 5,
+      "cookies": {
+        "FPID": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        },
+        "_ga": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        },
+        "FPLC": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        },
+        "_ga_QDB1B9ZWCH": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        },
+        "gtmBrowserId": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "unknown"
+        }
+      }
+    }
+  ],
+  "marketing": [],
+  "unclassified": [
+    {
+      "platform": "Unknown",
+      "privacy_policy": null,
+      "total_cookies": 7,
+      "cookies": {
+        "dmws:cookie": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "unknown"
+        },
+        "Trengo_VisitorToken": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "unknown"
+        },
+        "mf_37169488-d856-44be-bddc-80d105914a5a": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "persistent"
+        },
+        "socketId-15110": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "unknown"
+        },
+        "lastTabClosureTime-15110": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "unknown"
+        },
+        "firebase-heartbeat-database#firebase-heartbeat-store": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "unknown"
+        },
+        "firebaseLocalStorageDb#firebaseLocalStorage": {
+          "retention": { "minutes": 0, "hours": 0, "days": 0, "months": 0, "years": 0 },
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "type": "unknown"
+        }
+      }
+    }
+  ]
+}

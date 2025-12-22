@@ -51,6 +51,7 @@ export default defineConfig(({ mode }) => ({
     mockApiPlugin(),
     copyOnDev({
       copies: [
+        { from: './development/misc', to: './public' },
         { from: './src/images', to: './public/images' },
         { from: './development/data-sources', to: './public/banner' },
       ],

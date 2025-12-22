@@ -1,20 +1,20 @@
-import { AbstractPlugin } from "@/js/app/plugins/AbstractPlugin";
+import { PluginInterface } from '@/js/app/interfaces/PluginInterface'
 
 class PluginLoader {
-    plugins: AbstractPlugin[];
-    constructor(plugins: AbstractPlugin[] = []) {
-        this.plugins = plugins;
-    }
+  plugins: PluginInterface[]
+  constructor(plugins: PluginInterface[] = []) {
+    this.plugins = plugins
+  }
 
-    register() {
-        this.plugins.forEach((plugin) => {
-            plugin.register();
-        });
+  register() {
+    this.plugins.forEach((plugin) => {
+      plugin.register()
+    })
 
-        window.ccPlugins.forEach((plugin) => {
-            plugin.register();
-        });
-    }
+    window.ccPlugins.forEach((plugin) => {
+      plugin.register()
+    })
+  }
 }
 
-export default PluginLoader;
+export default PluginLoader

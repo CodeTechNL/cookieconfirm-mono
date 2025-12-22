@@ -1,37 +1,41 @@
-import { LocalStorageTypes } from "@/js/app/types";
-import { StylingInterface } from "@/js/app/interfaces/StylingInterface";
+import { LocalStorageTypes } from '@/js/app/types'
+import {
+  CookieIconPosition,
+  CookieIconStorageInterface,
+  StylingInterface,
+} from '@/js/app/interfaces/StylingInterface'
 
 class LocalStorageService {
-    setValue(key: LocalStorageTypes, value: any) {
-        localStorage.setItem(key, JSON.stringify(value));
-    }
-    getValue(key: LocalStorageTypes) {
-        return JSON.parse(localStorage.getItem(key) as string);
-    }
+  setValue(key: LocalStorageTypes, value: any) {
+    localStorage.setItem(key, JSON.stringify(value))
+  }
+  getValue(key: LocalStorageTypes) {
+    return JSON.parse(localStorage.getItem(key) as string)
+  }
 
-    setBanner(data: StylingInterface): void {
-        this.setValue("cc_banner", JSON.stringify(data));
-    }
+  setCountry(country: string | null) {
+    this.setValue('cc_location', country)
+  }
 
-    setInit(data: Promise<InitResponseInterface>): void {
-        this.setValue("cc_init", JSON.stringify(data));
-    }
+  getCountry() {
+    return this.getValue('cc_location')
+  }
 
-    getInitData(): InitResponseInterface {
-        return JSON.parse(this.getValue("cc_init"));
+  setCookieIcon(icon: string, position: CookieIconPosition, x: string, y: string) {
+    const store = {
+      icon: icon,
+      position: position,
+      directions: {
+        x,
+        y,
+      },
     }
+    this.setValue('cc_cookie_icon', store)
+  }
 
-    setCountry(country: string | null) {
-        this.setValue("cc_location", country);
-    }
-
-    getCountry() {
-        return this.getValue("cc_location");
-    }
-
-    getBanner(): StylingInterface {
-        return JSON.parse(this.getValue("cc_banner")) || {};
-    }
+  getCookieIcon(): CookieIconStorageInterface {
+    return this.getValue('cc_cookie_icon')
+  }
 }
 
-export default new LocalStorageService();
+export default new LocalStorageService()

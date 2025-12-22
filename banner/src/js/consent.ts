@@ -1,59 +1,51 @@
-import "./globals";
-import BannerDataService from "@/js/app/services/BannerDataService";
-import CdnService from "@/js/app/services/CdnService";
-import localStorageService from "@/js/app/services/LocalStorageService";
-import cookieStorageService from "@/js/app/services/CookieStorageService";
-import Template from "@/js/templates/default/template";
-import { BannerEvents } from "@/js/templates/default/bannerEvents";
-import { TemplateConcrete } from "@/js/app/types";
-import PluginLoader from "@/js/app/services/PluginLoader";
-import CookieStorageService from "@/js/app/services/CookieStorageService";
-import { ccDispatchEvent } from "@/js/app/helpers";
-import MatomoPlugin from "@/js/app/plugins/MatomoPlugin";
-import ClarityPlugin from "@/js/app/plugins/ClarityPlugin";
-import ConsentPlugin from "@/js/app/plugins/ConsentPlugin";
-import MetaPlugin from "@/js/app/plugins/MetaPlugin";
-import ShopifyPlugin from "@/js/app/plugins/ShopifyPlugin";
-import UetPlugin from "@/js/app/plugins/UetPlugin";
-import WordpressPlugin from "@/js/app/plugins/WordpressPlugin";
-import GtmPlugin from "@/js/app/plugins/GtmPlugin";
+/**
+ * De pagina laad en haalt de banner op. Hiervoor zijn 3 dingen belangrijk:
+ *
+ * 1: de country van de user
+ * 2: de instellingen van de banner
+ * 3: de initialisatie van de banner
+ *
+ * De banner instellingen zijn afhankelijk van GEO regels. De country en de taal kunnen hier in een rol spelen
+ */
 
-(() => {
-    "use strict";
+import './globals'
+import cookieStorageService from '@/js/app/services/CookieStorageService'
+import { ccDispatchEvent } from '@/js/app/helpers'
+import { TemplateConcrete } from '@/js/app/types'
+import { BannerEvents } from '@/js/templates/default/bannerEvents'
+import template from '@/js/templates/default/template'
+import BannerResolver from '@/js/app/resolvers/BannerResolver'
+import localStorageService from '@/js/app/services/LocalStorageService'
 
-    const plugins = new PluginLoader([ConsentPlugin, GtmPlugin, MatomoPlugin, ClarityPlugin, MetaPlugin, ShopifyPlugin, UetPlugin, WordpressPlugin]);
+import './plugins'
 
-    const initApp = (layout: TemplateConcrete, cookieService: typeof CookieStorageService) => {
-        const initService = new BannerDataService(CdnService, localStorageService, cookieStorageService);
+const init = async (layout: TemplateConcrete) => {
+  const consentId = cookieStorageService.getConsentId()
+  const givenConsent = cookieStorageService.getAcceptedCookies()
+  const banner = await BannerResolver.resolve()
 
-        initService.getInitData().then(async (result) => {
-            const consentId = cookieService.getConsentId();
-            window.ccDispatch("consentIdSet", {
-                id: consentId,
-            });
+  const design = new layout(
+    banner.translations,
+    banner.banner,
+    banner.cookies,
+    new BannerEvents(consentId, window.ccDomain),
+    window.ccDomain,
+  )
 
-            const data = await initService.getBanner(result.country, result.banner.availableLanguages, result.banner.fallbackLanguage, result.banner.geoRules);
+  design.register()
 
-            const template = new layout(data.translations, data.banner, data.cookies, new BannerEvents(consentId, "sample.com"), consentId);
+  if (!givenConsent.length) {
+    localStorageService.setCookieIcon(
+      banner.banner.branding.icon,
+      banner.banner.branding.position,
+      '10px',
+      '10px',
+    )
+  } else {
+    const cookieIcon = localStorageService.getCookieIcon()
+    ccDispatchEvent('renderCookieIcon', cookieIcon)
+    ccDispatchEvent('enableConsent', givenConsent)
+  }
+}
 
-            const acceptedCookies = cookieService.getAcceptedCookies();
-
-            if (acceptedCookies.length) {
-                template.renderCookieIcon();
-                ccDispatchEvent("enableConsent", acceptedCookies);
-            } else {
-                template.renderBanner();
-            }
-
-            window.ccListen("consentGiven", (e) => {
-                cookieService.setAcceptedCookies(e.consent);
-            });
-        });
-    };
-
-    document.addEventListener("DOMContentLoaded", () => {
-        plugins.register();
-
-        initApp(Template, CookieStorageService);
-    });
-})();
+init(template)

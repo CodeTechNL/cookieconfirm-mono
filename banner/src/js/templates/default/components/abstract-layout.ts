@@ -1,6 +1,6 @@
 import { TranslationTypes } from "@/js/app/types";
 import { BannerDesignInterface } from "@/js/app/interfaces/StylingInterface";
-import { CookieListType } from "@/js/app/interfaces/CookieDataInterfaces";
+import { CookieListType } from '@/js/app/interfaces/DataFeeds/CookieInterface'
 
 export abstract class AbstractLayout {
     translations: Record<TranslationTypes, string>;

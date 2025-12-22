@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Banner - Cookie Confirm</title>
+  <script>
+    window.ccDomain = 'localhost'
+  </script>
+  <script src="/js/consent.ts" type="module"></script>
+  <style>
+    :root {
+      --bg-color: #f7f8fa;
+      --text-color: #222;
+      --card-bg: #fff;
+      --accent-color: #3a7bd5;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #111;
+        --text-color: #eee;
+        --card-bg: #1b1b1b;
+        --accent-color: #64b5f6;
+      }
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--bg-color);
+      font-family: system-ui, -apple-system, sans-serif;
+      color: var(--text-color);
+    }
+
+    .container {
+      text-align: center;
+      background: var(--card-bg);
+      padding: 2.5rem 3.5rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: background 0.3s;
+    }
+
+    .logo {
+      width: 100px;
+      height: auto;
+      margin-bottom: 1.2rem;
+    }
+
+    .text {
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtext {
+      font-size: 0.95rem;
+      color: var(--accent-color);
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <img src="/images/logo.png" alt="Logo" class="logo" />
+  <div class="text">Cookie Confirm CDN</div>
+</div>
+</body>
+</html>

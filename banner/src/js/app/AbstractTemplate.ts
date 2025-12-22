@@ -1,73 +1,59 @@
-import { TranslationTypes } from "@/js/app/types";
-import { BannerDesignInterface } from "@/js/app/interfaces/StylingInterface";
-import { CookieListType } from "@/js/app/interfaces/CookieDataInterfaces";
-import { HasBannerEvents } from "@/js/app/interfaces/HasBannerEvents";
+import { TranslationTypes } from '@/js/app/types'
+import { BannerDesignInterface } from '@/js/app/interfaces/StylingInterface'
+import { HasBannerEvents } from '@/js/app/interfaces/HasBannerEvents'
+import { CookieListType } from '@/js/app/interfaces/DataFeeds/CookieInterface'
+import { TranslationsInterface } from '@/js/app/interfaces/TranslationsInterface'
 
 export abstract class AbstractTemplate {
-    translations: Record<TranslationTypes, string>;
-    banner: BannerDesignInterface;
-    cookies: CookieListType;
-    events: HasBannerEvents;
-    consentId: string;
+  translations: TranslationsInterface
+  banner: BannerDesignInterface
+  cookies: CookieListType
+  events: HasBannerEvents
+  consentId: string
 
-    constructor(
-        translations: Record<TranslationTypes, string>,
-        banner: BannerDesignInterface,
-        cookies: CookieListType,
-        events: HasBannerEvents,
-        consentId: string,
-    ) {
-        this.translations = translations;
-        this.banner = banner;
-        this.cookies = cookies;
-        this.events = events;
-        this.consentId = consentId;
+  constructor(
+    translations: Record<TranslationTypes, string>,
+    banner: BannerDesignInterface,
+    cookies: CookieListType,
+    events: HasBannerEvents,
+    consentId: string,
+  ) {
+    this.translations = translations
+    this.banner = banner
+    this.cookies = cookies
+    this.events = events
+    this.consentId = consentId
 
-        this.init();
+    this.init()
+  }
+
+  abstract getBannerHtml(): string
+
+  abstract getBannerCss(): string
+
+  abstract registerBannerEvents(): void
+
+  renderBanner(): void {
+    const modal = document.getElementById('consent-banner')
+    if (modal) {
+      modal.classList.remove('hidden')
+      return
     }
 
-    abstract getBannerHtml(): string;
+    document.body.insertAdjacentHTML('beforeend', this.getBannerHtml())
 
-    abstract getBannerCss(): string;
+    const el = document.createElement('style')
+    el.textContent = this.getBannerCss()
+    document.head.appendChild(el)
 
-    abstract getCookieIconHtml(): string;
+    this.registerBannerEvents()
+  }
 
-    abstract registerBannerEvents(): void;
+  init(): void {
+    window.ccListen('openBanner', () => {
+      this.renderBanner()
+    })
+  }
 
-    abstract registerCookieIconEvents(): void;
-
-    renderBanner(): void {
-        const modal = document.getElementById("consent-banner");
-        if (modal) {
-            modal.classList.remove("hidden");
-            return;
-        }
-
-        document.body.insertAdjacentHTML("beforeend", this.getBannerHtml());
-
-        const el = document.createElement("style");
-        el.textContent = this.getBannerCss();
-        document.head.appendChild(el);
-
-        this.registerBannerEvents();
-    }
-
-    renderCookieIcon(): void {
-        if (document.getElementById("cc-icon")) {
-            return;
-        }
-        document.body.insertAdjacentHTML("beforeend", this.getCookieIconHtml());
-
-        this.registerCookieIconEvents();
-    }
-
-    init(): void {
-        window.ccListen("openBanner", () => {
-            this.renderBanner();
-        });
-
-        window.ccListen("renderCookieIcon", () => {
-            this.renderCookieIcon();
-        });
-    }
+  abstract register() : void;
 }
