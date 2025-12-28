@@ -1,7 +1,8 @@
 import { AbstractPlugin } from "@/js/app/plugins/AbstractPlugin";
 import { ConsentTypes } from "@/js/app/types";
+import { PluginInterface } from '@/js/app/interfaces/PluginInterface'
 
-class WordpressPlugin extends AbstractPlugin {
+class WordpressPlugin extends AbstractPlugin implements PluginInterface{
     private readonly ALLOW = "allow" as const;
     private readonly DENY = "deny" as const;
 

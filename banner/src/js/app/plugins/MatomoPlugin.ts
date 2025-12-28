@@ -1,9 +1,10 @@
 import { AbstractPlugin } from "@/js/app/plugins/AbstractPlugin";
+import { PluginInterface } from '@/js/app/interfaces/PluginInterface'
 
-class MatomoPlugin extends AbstractPlugin {
+class MatomoPlugin extends AbstractPlugin implements PluginInterface{
     register(): void {
         this.onConsent((e) => {
-            if (e.consent.includes("analytics")) {
+            if (e.includes("analytics")) {
                 window._paq!.push(["rememberCookieConsentGiven"]);
                 window._paq!.push(["setConsentGiven"]);
             } else {

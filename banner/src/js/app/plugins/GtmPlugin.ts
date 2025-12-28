@@ -1,4 +1,5 @@
 import { AbstractPlugin } from "@/js/app/plugins/AbstractPlugin";
+import { PluginInterface } from '@/js/app/interfaces/PluginInterface'
 
 export interface ConsentObjectInterface {
     ad_storage: "granted" | "denied";
@@ -10,7 +11,7 @@ export interface ConsentObjectInterface {
     security_storage: "granted" | "denied";
     wait_for_update?: number;
 }
-class GtmPlugin extends AbstractPlugin {
+class GtmPlugin extends AbstractPlugin implements PluginInterface{
     GRANTED = "granted";
     DENIED = "denied";
 

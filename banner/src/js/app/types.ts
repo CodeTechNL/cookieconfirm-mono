@@ -1,7 +1,7 @@
 import { AbstractTemplate } from '@/js/app/AbstractTemplate'
 import { BannerDesignInterface } from '@/js/app/interfaces/StylingInterface'
-import { HasBannerEvents } from '@/js/app/interfaces/HasBannerEvents'
 import { CookieListType } from '@/js/app/interfaces/DataFeeds/CookieInterface'
+import { AbstractEvents } from '@/js/app/AbstractEvents'
 
 export type ButtonTypes = 'rejectAll' | 'acceptAll' | 'allowSelection' | 'customizeSelection'
 
@@ -66,6 +66,13 @@ export type TemplateConcrete = new (
   translations: Record<TranslationTypes, string>,
   banner: BannerDesignInterface,
   cookies: CookieListType,
-  events: HasBannerEvents,
+  events: AbstractEvents,
   consentId: string,
 ) => AbstractTemplate
+
+
+export type EventsConcrete = new (
+  consentId: string,
+  domain: string
+) => AbstractEvents
+

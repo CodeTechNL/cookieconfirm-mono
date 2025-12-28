@@ -1,9 +1,8 @@
 import { ConsentTypes, TabTypes } from '@/js/app/types'
-import DebugPlugin from '@/js/app/plugins/DebugPlugin'
-import { CookieIconInterface } from '@/js/app/interfaces/StylingInterface'
-import { CookieIconStorageInterface } from '@/js/app/interfaces/CookieIconStorageInterface'
+import { CookieIconStorageInterface } from '@/js/app/interfaces/StylingInterface'
 
 export type EventDetailMap = {
+  bannerRendered: void,
   consentGiven: {
     country: string | null
     method: string
@@ -16,9 +15,10 @@ export type EventDetailMap = {
     id: string
   }
   openBanner: {
-    tab?: TabTypes
+    tab?: TabTypes,
+    consentId?: string
   }
-  renderCookieIcon: CookieIconStorageInterface
+  renderCookieIcon: CookieIconStorageInterface|void
   countrySet: {
     country: string
   }
@@ -29,13 +29,13 @@ export type EventDetailMap = {
 export type EventTypes = keyof EventDetailMap
 
 // Dispatch: detail type volgt automatisch uit het event
-export const ccDispatchEvent = <E extends EventTypes>(
+export function ccDispatchEvent<E extends keyof EventDetailMap>(
   event: E,
-  detail: EventDetailMap[E],
-): void => {
-  window.dispatchEvent(new CustomEvent<EventDetailMap[E]>(event, { detail }))
-
-  window.ccDebugger?.logEvent(event, detail)
+  ...payload: EventDetailMap[E] extends void ? [] : [EventDetailMap[E]]
+) {
+  window.dispatchEvent(
+    new CustomEvent(event, { detail: payload[0] })
+  )
 }
 
 // Listen: callback krijgt het juiste detail type voor het event

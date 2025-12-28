@@ -1,6 +1,15 @@
 import { CookieListType } from '@/js/app/interfaces/DataFeeds/CookieInterface'
 import { BannerDesignInterface } from '@/js/app/interfaces/StylingInterface'
 
+interface InitResponseInterface {
+  version: number;
+  geoRules: string[];
+  cookieDomain: string;
+  availableLanguages: string[];
+  fallbackLanguage: string | null;
+  excludePaths: string[];
+}
+
 class ApiService {
   cdnUrl: string
   website: string
@@ -10,16 +19,17 @@ class ApiService {
     this.cdnUrl = apiUrl
     this.consentStoreUrl = consentStoreUrl
     this.website = website
+
+      console.log(`Received domain: ${website}`);
   }
 
   async getInit(): Promise<InitResponseInterface> {
-    console.log(this.getInitUrl())
     return await fetch(this.getInitUrl()).then((res) => res.json())
   }
 
-  async getCountry(): Promise<string> {
+  async getCountry(): Promise<{ country: string }> {
     return await fetch(this.getCountryUrl()).then((res) => {
-      return res.headers.get('x-country')!
+      return res.json()!
     })
   }
 
@@ -31,23 +41,25 @@ class ApiService {
     return `${this.cdnUrl}/country.json`
   }
 
-  async getBanner(byCountry: string | null, version: number) :Promise<BannerDesignInterface> {
-    const url = `banner-${byCountry ? `${byCountry}` : 'default'}.json?v=${version}`;
+  async getBanner(byCountry: string | null, version: number): Promise<BannerDesignInterface> {
+    const url = `banner-${byCountry ? `${byCountry}` : 'default'}.json?v=${version}`
     return await fetch(this.getComponentUrl(url)).then((res) => res.json())
   }
 
   async getTranslations(locale: string, version: number) {
-    return await fetch(this.getComponentUrl(`locale-${locale}.json?v=${version}`))
-      .then((res) => res.json())
+    return await fetch(this.getComponentUrl(`locale-${locale}.json?v=${version}`)).then((res) =>
+      res.json(),
+    )
   }
 
-  getComponentUrl(suffix: string){
+  getComponentUrl(suffix: string) {
     return `${this.cdnUrl}/banner/${this.website}/${suffix}`
   }
 
   async getCookies(locale: string, version: number): Promise<CookieListType> {
-    return await fetch(this.getComponentUrl(`cookies-${locale}.json?v=${version}`))
-      .then((res) => res.json())
+    return await fetch(this.getComponentUrl(`cookies-${locale}.json?v=${version}`)).then((res) =>
+      res.json(),
+    )
   }
 }
 

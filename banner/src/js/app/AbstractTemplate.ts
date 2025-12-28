@@ -1,21 +1,21 @@
 import { TranslationTypes } from '@/js/app/types'
 import { BannerDesignInterface } from '@/js/app/interfaces/StylingInterface'
-import { HasBannerEvents } from '@/js/app/interfaces/HasBannerEvents'
 import { CookieListType } from '@/js/app/interfaces/DataFeeds/CookieInterface'
 import { TranslationsInterface } from '@/js/app/interfaces/TranslationsInterface'
+import { AbstractEvents } from '@/js/app/AbstractEvents'
 
 export abstract class AbstractTemplate {
   translations: TranslationsInterface
   banner: BannerDesignInterface
   cookies: CookieListType
-  events: HasBannerEvents
+  events: AbstractEvents
   consentId: string
 
   constructor(
     translations: Record<TranslationTypes, string>,
     banner: BannerDesignInterface,
     cookies: CookieListType,
-    events: HasBannerEvents,
+    events: AbstractEvents,
     consentId: string,
   ) {
     this.translations = translations

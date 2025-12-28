@@ -1,7 +1,8 @@
 import { ConsentTypes } from "@/js/app/types";
 import { AbstractPlugin } from "@/js/app/plugins/AbstractPlugin";
+import { PluginInterface } from '@/js/app/interfaces/PluginInterface'
 
-class ShopifyPlugin extends AbstractPlugin {
+class ShopifyPlugin extends AbstractPlugin implements PluginInterface{
     register(): void {
         this.onConsent((consent: ConsentTypes[]) => {
             this.setAllConsentTypes(consent);

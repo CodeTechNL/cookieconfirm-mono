@@ -1,7 +1,7 @@
 import { AbstractPlugin } from "@/js/app/plugins/AbstractPlugin";
-import { ConsentTypes } from "@/js/app/types";
+import { PluginInterface } from '@/js/app/interfaces/PluginInterface'
 
-class MetaPlugin extends AbstractPlugin {
+class MetaPlugin extends AbstractPlugin implements PluginInterface{
     private readonly GRANT = "grant" as const;
     private readonly REVOKE = "revoke" as const;
 
@@ -14,8 +14,8 @@ class MetaPlugin extends AbstractPlugin {
             window.fbq!("consent", this.REVOKE);
         }
 
-        this.onConsent((e: { consent: ConsentTypes[] }) => {
-            const action = e.consent.includes("marketing") ? this.GRANT : this.REVOKE;
+        this.onConsent((e) => {
+            const action = e.includes("marketing") ? this.GRANT : this.REVOKE;
             window.fbq!("consent", action);
         });
     }

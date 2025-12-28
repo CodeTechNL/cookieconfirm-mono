@@ -1,6 +1,6 @@
 import { CookieIconStorageInterface } from '@/js/app/interfaces/StylingInterface'
 
-class CookieIconTemplate {
+class CookieIcon {
   private readonly data: CookieIconStorageInterface
   constructor(data: CookieIconStorageInterface) {
     this.data = data
@@ -33,4 +33,4 @@ class CookieIconTemplate {
   }
 }
 
-export default CookieIconTemplate
+export default CookieIcon

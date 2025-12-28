@@ -1,3 +1,6 @@
+import './globals'
+import './plugins'
+
 /**
  * De pagina laad en haalt de banner op. Hiervoor zijn 3 dingen belangrijk:
  *
@@ -7,40 +10,34 @@
  *
  * De banner instellingen zijn afhankelijk van GEO regels. De country en de taal kunnen hier in een rol spelen
  */
-
-import './globals'
 import cookieStorageService from '@/js/app/services/CookieStorageService'
 import { ccDispatchEvent } from '@/js/app/helpers'
-import { TemplateConcrete } from '@/js/app/types'
+import { EventsConcrete, TemplateConcrete } from '@/js/app/types'
 import { BannerEvents } from '@/js/templates/default/bannerEvents'
 import template from '@/js/templates/default/template'
 import BannerResolver from '@/js/app/resolvers/BannerResolver'
 import localStorageService from '@/js/app/services/LocalStorageService'
-
-import './plugins'
-
-const init = async (layout: TemplateConcrete) => {
+import BannerService from '@/js/app/services/BannerService'
+console.log('Cookie Confirm Consent Loaded');
+const init = async (layout: TemplateConcrete, events: EventsConcrete) => {
   const consentId = cookieStorageService.getConsentId()
   const givenConsent = cookieStorageService.getAcceptedCookies()
-  const banner = await BannerResolver.resolve()
+  const bannerData = await BannerResolver.resolve()
 
-  const design = new layout(
-    banner.translations,
-    banner.banner,
-    banner.cookies,
-    new BannerEvents(consentId, window.ccDomain),
-    window.ccDomain,
-  )
-
-  design.register()
+  const banner = new BannerService(layout, events, window.ccDomain, bannerData, consentId)
+  banner.register()
 
   if (!givenConsent.length) {
     localStorageService.setCookieIcon(
-      banner.banner.branding.icon,
-      banner.banner.branding.position,
+      bannerData.banner.branding.icon,
+      bannerData.banner.branding.position,
       '10px',
       '10px',
     )
+
+    ccDispatchEvent('openBanner', {
+      consentId: consentId
+    })
   } else {
     const cookieIcon = localStorageService.getCookieIcon()
     ccDispatchEvent('renderCookieIcon', cookieIcon)
@@ -48,4 +45,4 @@ const init = async (layout: TemplateConcrete) => {
   }
 }
 
-init(template)
+init(template, BannerEvents)

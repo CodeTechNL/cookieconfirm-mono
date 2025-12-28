@@ -2,6 +2,7 @@ import { AbstractLayout } from "@/js/templates/default/components/abstract-layou
 
 export class TabContent3 extends AbstractLayout {
     render(): string {
+      console.log(this.consentId);
         return `
     <div class="responsive-padding">
       <div class="vertical-spacing">

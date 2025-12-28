@@ -5,8 +5,11 @@ import { PluginInterface } from '@/js/app/interfaces/PluginInterface'
 
 class ConsentPlugin implements PluginInterface {
   cookieManager: typeof CookieStorageService
-  constructor(cookieManager: typeof CookieStorageService) {
+  consentStorageUrl: string
+
+  constructor(cookieManager: typeof CookieStorageService, consentStorageUrl: string) {
     this.cookieManager = cookieManager
+    this.consentStorageUrl = consentStorageUrl
   }
   isDefined(): boolean {
     return true
@@ -29,11 +32,15 @@ class ConsentPlugin implements PluginInterface {
       marketing: event.consent.includes('marketing'),
       functional: true,
       country: event.country,
-      domain: window.ccDomain,
+      domain: event.domain,
       path: window.location.pathname,
     }
 
-    fetch(`${import.meta.env.VITE_APP_URL}/api/v1/store-consent`, {
+    console.log(payload);
+    console.log('Consent storage url:');
+    console.log(this.consentStorageUrl);
+
+    fetch(`${this.consentStorageUrl}/api/v1/store-consent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -43,4 +50,4 @@ class ConsentPlugin implements PluginInterface {
   }
 }
 
-export default new ConsentPlugin(cookieStorageService)
+export default new ConsentPlugin(cookieStorageService, import.meta.env.VITE_CONSENT_STORE_URL)

@@ -17,7 +17,11 @@ class CountryResolver {
       return country;
     }
 
-    country = await this.apiService.getCountry();
+    const request = await this.apiService.getCountry();
+    country = request.country;
+
+    console.log('Country data');
+    console.log(country);
     country = country.toLowerCase();
     this.localStorageService.setCountry(country);
 

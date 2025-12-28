@@ -1,7 +1,8 @@
 import { AbstractPlugin } from "@/js/app/plugins/AbstractPlugin";
 import { ConsentTypes } from "@/js/app/types";
+import { PluginInterface } from '@/js/app/interfaces/PluginInterface'
 
-class UetPlugin extends AbstractPlugin {
+class UetPlugin extends AbstractPlugin implements PluginInterface{
     register(): void {
         this.initDefault();
 
