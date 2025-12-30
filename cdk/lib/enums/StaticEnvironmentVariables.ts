@@ -79,10 +79,13 @@ export type StaticEnvVars = typeof STATIC_ENV;
  * =========================
  */
 export const ENV_KEYS = [
+    "BANNER_DOMAIN",
     "APP_KEY",
     "APP_ENV",
     "DB_PASSWORD",
     "DB_USERNAME",
+    "CF_SECRET",
+    "CF_ACCOUNT_ID",
     "BUGSNAG_API_KEY",
     "MAIL_FROM_ADDRESS",
     "MAILGUN_DOMAIN",
@@ -143,6 +146,7 @@ export function loadEnvironment(scope: Construct, idPrefix: string): SsmEnvVars 
 export const COMPUTED_ENV_KEYS = [
     "APP_URL",
     "ASSET_URL",
+    "FULL_BANNER_DOMAIN",
     "APP_VERSION_HASH",
     "SCANNER_QUEUE_NAME",
     "SCANNER_EVENT_BRIDGE_CONNECTION_NAME",

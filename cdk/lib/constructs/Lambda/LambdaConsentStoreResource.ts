@@ -1,12 +1,12 @@
-import { Construct } from "constructs";
-import { FunctionUrlAuthType, HttpMethod, Runtime } from "aws-cdk-lib/aws-lambda";
+import {Construct} from "constructs";
+import {FunctionUrlAuthType, HttpMethod, Runtime} from "aws-cdk-lib/aws-lambda";
 
-import { Bucket } from "aws-cdk-lib/aws-s3";
-import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
-import { NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
-import { fromRoot } from "../../helpers";
-import { Duration, Fn } from "aws-cdk-lib";
-import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import {Bucket} from "aws-cdk-lib/aws-s3";
+import {LogGroup, RetentionDays} from "aws-cdk-lib/aws-logs";
+import {NodejsFunction, OutputFormat} from "aws-cdk-lib/aws-lambda-nodejs";
+import {fromRoot} from "../../helpers";
+import {Duration, Fn} from "aws-cdk-lib";
+import {PolicyStatement} from "aws-cdk-lib/aws-iam";
 
 type LambdaConsentStoreProps = {
     awsAccount: string;
@@ -16,11 +16,12 @@ type LambdaConsentStoreProps = {
 
 export class LambdaConsentStoreResource extends Construct {
     private readonly ingestUrl: string;
+    private consentStoreUrl: string;
 
     constructor(scope: Construct, id: string, props: LambdaConsentStoreProps) {
         super(scope, id);
 
-        const { awsAccount, bucketName, streamName } = props;
+        const {awsAccount, bucketName, streamName} = props;
         const bucket = Bucket.fromBucketName(this, "ExistingAthenaBucket", bucketName);
 
         const group = new LogGroup(this, "Group", {
@@ -67,9 +68,14 @@ export class LambdaConsentStoreResource extends Construct {
         bucket.grantPut(ingestFn);
 
         this.ingestUrl = Fn.select(2, Fn.split("/", ingestUrl.url));
+        this.consentStoreUrl = ingestUrl.url;
     }
 
     public getIngestUrl(): string {
         return this.ingestUrl;
+    }
+
+    public getConsentStoreUrl(): string {
+        return this.consentStoreUrl;
     }
 }

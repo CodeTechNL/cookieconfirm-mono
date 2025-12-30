@@ -1,5 +1,6 @@
 export interface IncomingRequestDataInterface {
     path: string;
+    country: string;
     id: string;
     website: string;
     consentMethod: string;

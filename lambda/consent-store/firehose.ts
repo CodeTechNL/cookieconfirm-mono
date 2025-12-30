@@ -14,7 +14,7 @@ export const handler = async (event: LambdaFunctionURLEvent, _context: Context):
     const record = {
         uuid: requestData.id,
         ip_address: event.requestContext.http.sourceIp,
-        country: "",
+        country: requestData.country,
         domain: requestData.domain,
         page_url: requestData.path,
         user_agent: event.requestContext.http.userAgent,
@@ -49,8 +49,6 @@ function response(status: number, body: string) {
     return {
         statusCode: status,
         headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "*",
             "Access-Control-Allow-Methods": "POST,OPTIONS",
             "Content-Type": "text/plain; charset=utf-8",
         },

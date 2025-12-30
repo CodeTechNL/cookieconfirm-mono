@@ -32,6 +32,9 @@ export class EnvironmentResource extends Construct {
         const appUrl = `https://${envFromSsm.APP_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}`;
 
         const SCANNER_QUEUE_NAME = `${resourcePrefix}-cookie-scanner-queue`; // Queue name for the scanner requests
+
+        const bannerDomain = `${envFromSsm.BANNER_SUBDOMAIN}.${envFromSsm.BANNER_DOMAIN}`; // banner.cookieconfirm.tech
+
         // 2) Computed values bouwen
         const computed: ComputedEnvVars = {
             S3_BANNER_ASSETS_BUCKET: `cdk-${resourcePrefix}-banner-assets-bucket`,
@@ -46,7 +49,8 @@ export class EnvironmentResource extends Construct {
             REDIS_PREFIX: extractCapitals(idPrefix),
 
 
-            BANNER_DOMAIN: `${envFromSsm.BANNER_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}`, // banner.cookieconfirm.tech
+            BANNER_DOMAIN: bannerDomain,
+            FULL_BANNER_DOMAIN: `https://${bannerDomain}`,
             OLD_ASSETS_DOMAIN: `assets.${envFromSsm.APP_MAIN_DOMAIN}`, // assets.cookieconfirm.tech
             APP_URL: `https://${envFromSsm.APP_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}`, // Platform URL https://platform.cookieconfirm.tech/
             ASSET_URL: `https://${envFromSsm.APP_PLATFORM_ASSETS_SUBDOMAIN}.${envFromSsm.APP_MAIN_DOMAIN}/${version}`, // cdn.cookieconfirm.tech/{HASH}/*
