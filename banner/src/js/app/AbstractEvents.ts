@@ -1,11 +1,16 @@
 export abstract class AbstractEvents {
-  consentId: string
-  domain: string
+    consentId: string
+    domain: string
+    country: string
 
-  constructor(consentId: string, domain: string) {
-    this.consentId = consentId
-    this.domain = domain
-  }
+    constructor(consentId: string, domain: string, country: string) {
+        this.consentId = consentId
+        this.domain = domain
+        this.country = country;
 
-  abstract register(): void
+        console.log(`Domain: ${this.domain}`);
+        console.log(`Country: ${this.country}`);
+    }
+
+    abstract register(): void
 }

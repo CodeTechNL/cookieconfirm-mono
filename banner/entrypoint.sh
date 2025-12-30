@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "==> entrypoint version: 2025-12-28-mappings"
+echo "VITE_CDN_URL=$VITE_CDN_URL"   # runtime
+
+exec "$@"
+
+echo "==> entrypoint version: 2025-12-28-lambda-tmp"
 
 if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
   echo "ERROR: CLOUDFLARE_API_TOKEN is leeg."
@@ -18,14 +22,28 @@ if [[ -z "${R2_BUCKET:-}" ]]; then
   exit 1
 fi
 
-echo "==> Installing dependencies..."
+# Lambda: alleen /tmp is writable
+export HOME="/tmp"
+export npm_config_cache="/tmp/.npm"
+
+SRC_APP="/opt/app"
+WORK_APP="/tmp/app"
+
+echo "==> Preparing writable workspace in ${WORK_APP}"
+rm -rf "${WORK_APP}"
+mkdir -p "${WORK_APP}"
+cp -R "${SRC_APP}/." "${WORK_APP}/"
+
+cd "${WORK_APP}"
+
+echo "==> Installing dependencies (in /tmp)..."
 if [[ -f package-lock.json ]]; then
   npm ci
 else
   npm install
 fi
 
-echo "==> Running build..."
+echo "==> Running build (in /tmp)..."
 npm run build
 
 # ==========================================================
@@ -34,12 +52,13 @@ npm run build
 # value = destination in R2 (prefix of volledige key)
 # ==========================================================
 declare -A UPLOAD_MAP=(
-  ["./public/dist/js"]="js"
-  ["./public/dist/images"]="images"
-  ["./public/dev-banner.html"]="dev-banner.html"
+  ["${WORK_APP}/public/dist/js"]="js"
+  ["${WORK_APP}/development/data-sources/localhost"]="banner/localhost"
+  ["${WORK_APP}/public/dist/images"]="images"
+  ["${WORK_APP}/public/dist/css"]="css"
+  ["${WORK_APP}/public/dev-banner.html"]="dev-banner.html"
 )
 
-# Optional extra prefix in bucket (bijv. "assets" -> assets/js/...)
 EXTRA_PREFIX="${R2_PREFIX:-}"
 EXTRA_PREFIX="${EXTRA_PREFIX#/}"
 if [[ -n "${EXTRA_PREFIX}" && "${EXTRA_PREFIX: -1}" != "/" ]]; then
@@ -56,9 +75,6 @@ for SRC in "${!UPLOAD_MAP[@]}"; do
     continue
   fi
 
-  # --------------------------------------------------------
-  # Directory
-  # --------------------------------------------------------
   if [[ -d "${SRC}" ]]; then
     echo "==> Uploading directory: ${SRC} -> ${DEST}/"
 
@@ -69,9 +85,6 @@ for SRC in "${!UPLOAD_MAP[@]}"; do
       wrangler r2 object put "${R2_BUCKET}/${key}" --file "${file}" --remote
     done
 
-  # --------------------------------------------------------
-  # File
-  # --------------------------------------------------------
   elif [[ -f "${SRC}" ]]; then
     echo "==> Uploading file: ${SRC} -> ${DEST}"
 
@@ -81,4 +94,4 @@ for SRC in "${!UPLOAD_MAP[@]}"; do
   fi
 done
 
-echo "==> Upload klaar. Container stopt."
+echo "==> Upload klaar. Lambda stopt."

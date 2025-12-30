@@ -73,6 +73,7 @@ export type TemplateConcrete = new (
 
 export type EventsConcrete = new (
   consentId: string,
-  domain: string
+  domain: string,
+  country: string
 ) => AbstractEvents
 

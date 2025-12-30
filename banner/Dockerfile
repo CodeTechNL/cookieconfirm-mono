@@ -1,21 +1,30 @@
-FROM node:22-alpine
+FROM public.ecr.aws/lambda/nodejs:20
 
-RUN apk add --no-cache bash
+# Tools die je entrypoint nodig heeft: bash + find
+RUN dnf install -y bash findutils \
+ && dnf clean all
 
+# Wrangler installeren
 RUN npm install -g wrangler@latest
 
-WORKDIR /app
-COPY . .
+ARG VITE_CDN_URL
+ENV VITE_CDN_URL=$VITE_CDN_URL
 
-# Defaults
-ENV R2_BUCKET="cookie-confirm-production"
-ENV R2_PREFIX=""
-ENV STAY_RUNNING="true"
+RUN echo "URL: $VITE_CDN_URL"
 
-# Nodig als je token meerdere accounts heeft
-ENV CLOUDFLARE_ACCOUNT_ID="0c58a19e78f8dab965f667c775da5c51"
 
+# Project in image (read-only bij runtime)
+WORKDIR /opt/app
+COPY . /opt/app
+
+# Entrypoint + handler
 COPY entrypoint.sh /entrypoint.sh
+COPY lambda-handler.mjs ${LAMBDA_TASK_ROOT}/lambda-handler.mjs
 RUN chmod +x /entrypoint.sh
 
-CMD ["/entrypoint.sh"]
+# Wrangler / CI: geen prompts
+ENV CI="true"
+ENV WRANGLER_SEND_METRICS="false"
+
+# Lambda handler
+CMD ["lambda-handler.handler"]

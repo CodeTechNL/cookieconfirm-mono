@@ -1,223 +1,224 @@
-import { ccDispatchEvent } from '@/js/app/helpers'
-import { ButtonTypes, ConsentTypes, TabTypes } from '@/js/app/types'
-import { AbstractEvents } from '@/js/app/AbstractEvents'
+import {ccDispatchEvent} from '@/js/app/helpers'
+import {ButtonTypes, ConsentTypes, TabTypes} from '@/js/app/types'
+import {AbstractEvents} from '@/js/app/AbstractEvents'
 
 export class BannerEvents extends AbstractEvents {
-  register() {
-    this.registerConsentButtons()
-    this.registerModalFocus()
-    this.registerTabButtonClicks()
-    this.registerTabButtonEnter()
-    this.registerModalTabFocus()
-    this.firstAccordionKeyboardEvents()
-    this.registerSwitches()
-    this.registerCookieIconTabOpen()
+    register() {
+        this.registerConsentButtons()
+        this.registerModalFocus()
+        this.registerTabButtonClicks()
+        this.registerTabButtonEnter()
+        this.registerModalTabFocus()
+        this.firstAccordionKeyboardEvents()
+        this.registerSwitches()
+        this.registerCookieIconTabOpen()
 
-    this.events()
-  }
+        this.events()
+    }
 
-  registerConsentButtons() {
-    this.onConsentClick('rejectAll', () => {
-      ccDispatchEvent('consentGiven', {
-        country: '',
-        method: 'rejectAll',
-        consent: ['functional'],
-        consentId: this.consentId,
-        domain: this.domain,
-      })
-    })
-
-    this.onConsentClick('allowSelection', () => {
-      const selected = ['functional'] as ConsentTypes[]
-      document
-        .querySelectorAll<HTMLInputElement>('.consent-type-value:checked')
-        .forEach((element) => {
-          selected.push(element.value as ConsentTypes)
+    registerConsentButtons() {
+        this.onConsentClick('rejectAll', () => {
+            ccDispatchEvent('consentGiven', {
+                country: this.country,
+                method: 'rejectAll',
+                consent: ['functional'],
+                consentId: this.consentId,
+                domain: this.domain,
+            })
         })
 
-      ccDispatchEvent('consentGiven', {
-        method: 'rejectAll',
-        consent: selected,
-        consentId: this.consentId,
-        domain: this.domain,
-        country: '',
-      })
-    })
+        this.onConsentClick('allowSelection', () => {
+            const selected = ['functional'] as ConsentTypes[]
+            document
+                .querySelectorAll<HTMLInputElement>('.consent-type-value:checked')
+                .forEach((element) => {
+                    selected.push(element.value as ConsentTypes)
+                })
 
-    this.onConsentClick('customizeSelection', () => {
-      this.openTab('tab2')
-    })
+            ccDispatchEvent('consentGiven', {
+                method: 'rejectAll',
+                consent: selected,
+                consentId: this.consentId,
+                domain: this.domain,
+                country: this.country,
+            })
+        })
 
-    this.onConsentClick('acceptAll', () => {
-      ccDispatchEvent('consentGiven', {
-        method: 'acceptAll',
-        consent: ['functional', 'marketing', 'analytics'],
-        consentId: this.consentId,
-        domain: this.domain,
-        country: '',
-      })
-    })
+        this.onConsentClick('customizeSelection', () => {
+            this.openTab('tab2')
+        })
 
-    this.onConsentClick('close-button', () => {
-      ccDispatchEvent('consentGiven', {
-        method: 'closeButton',
-        consent: ['functional'],
-        consentId: this.consentId,
-        domain: this.domain,
-        country: '',
-      })
-    })
-  }
+        this.onConsentClick('acceptAll', () => {
+            console.log(this.domain, this.country);
+            ccDispatchEvent('consentGiven', {
+                method: 'acceptAll',
+                consent: ['functional', 'marketing', 'analytics'],
+                consentId: this.consentId,
+                domain: this.domain,
+                country: this.country,
+            })
+        })
 
-  registerModalFocus() {
-    document.getElementById('consent-banner')?.focus()
-  }
+        this.onConsentClick('close-button', () => {
+            ccDispatchEvent('consentGiven', {
+                method: 'closeButton',
+                consent: ['functional'],
+                consentId: this.consentId,
+                domain: this.domain,
+                country: this.country,
+            })
+        })
+    }
 
-  openTab(tabId: TabTypes) {
-    document.getElementById('consent-banner')!.setAttribute('data-tab-opened', tabId)
+    registerModalFocus() {
+        document.getElementById('consent-banner')?.focus()
+    }
 
-    document.querySelectorAll('.tab-button').forEach((tab) => {
-      tab.classList.remove('active')
-    })
+    openTab(tabId: TabTypes) {
+        document.getElementById('consent-banner')!.setAttribute('data-tab-opened', tabId)
 
-    document.querySelectorAll('.tab-content').forEach((tab) => {
-      tab.classList.remove('active')
-      tab.removeAttribute('hidden')
-    })
+        document.querySelectorAll('.tab-button').forEach((tab) => {
+            tab.classList.remove('active')
+        })
 
-    document.querySelector('[data-tab="' + tabId + '"]')!.classList.add('active')
-    document.querySelector('#' + tabId)!.classList.add('active')
-  }
+        document.querySelectorAll('.tab-content').forEach((tab) => {
+            tab.classList.remove('active')
+            tab.removeAttribute('hidden')
+        })
 
-  onConsentClick(element: ButtonTypes | string, cb?: () => void) {
-    document.getElementById(element)!.addEventListener('click', () => {
-      console.log('clicked on ' + element)
-      if (cb) cb()
-    })
-  }
+        document.querySelector('[data-tab="' + tabId + '"]')!.classList.add('active')
+        document.querySelector('#' + tabId)!.classList.add('active')
+    }
 
-  registerTabButtonClicks() {
-    document.querySelectorAll('.tab-button').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        const targetTab = tab.attributes.getNamedItem('data-tab')!.value as TabTypes
-        this.openTab(targetTab)
-      })
-    })
-  }
+    onConsentClick(element: ButtonTypes | string, cb?: () => void) {
+        document.getElementById(element)!.addEventListener('click', () => {
+            console.log('clicked on ' + element)
+            if (cb) cb()
+        })
+    }
 
-  registerTabButtonEnter(): void {
-    const tabButtons = document.querySelectorAll<HTMLDivElement>(
-      '.tab-navigation > nav > div[role="tab"]',
-    )
+    registerTabButtonClicks() {
+        document.querySelectorAll('.tab-button').forEach((tab) => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.attributes.getNamedItem('data-tab')!.value as TabTypes
+                this.openTab(targetTab)
+            })
+        })
+    }
 
-    tabButtons.forEach((btn) => {
-      btn.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Enter') {
-          btn.click()
-        }
-      })
-    })
-  }
+    registerTabButtonEnter(): void {
+        const tabButtons = document.querySelectorAll<HTMLDivElement>(
+            '.tab-navigation > nav > div[role="tab"]',
+        )
 
-  registerModalTabFocus(): void {
-    const popup = document.querySelector<HTMLElement>('#consent-banner')!
+        tabButtons.forEach((btn) => {
+            btn.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Enter') {
+                    btn.click()
+                }
+            })
+        })
+    }
 
-    popup.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return
+    registerModalTabFocus(): void {
+        const popup = document.querySelector<HTMLElement>('#consent-banner')!
 
-      const focusables = popup.querySelectorAll<HTMLElement>(
-        'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      )
+        popup.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key !== 'Tab') return
 
-      if (focusables.length === 0) return
+            const focusables = popup.querySelectorAll<HTMLElement>(
+                'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+            )
 
-      const first = focusables[0]
-      const last = focusables[focusables.length - 1]
+            if (focusables.length === 0) return
 
-      if (e.shiftKey) {
-        if (document.activeElement === first) {
-          e.preventDefault()
-          last.focus()
-        }
-      } else {
-        if (document.activeElement === last) {
-          e.preventDefault()
-          first.focus()
-        }
-      }
-    })
-  }
+            const first = focusables[0]
+            const last = focusables[focusables.length - 1]
 
-  firstAccordionKeyboardEvents(): void {
-    const arrowElements = document.querySelectorAll<HTMLElement>('.accordion-icon-toggle')
+            if (e.shiftKey) {
+                if (document.activeElement === first) {
+                    e.preventDefault()
+                    last.focus()
+                }
+            } else {
+                if (document.activeElement === last) {
+                    e.preventDefault()
+                    first.focus()
+                }
+            }
+        })
+    }
 
-    arrowElements.forEach((btn) => {
-      btn.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          this.toggleFirstAccordion(btn)
-        }
-      })
-    })
+    firstAccordionKeyboardEvents(): void {
+        const arrowElements = document.querySelectorAll<HTMLElement>('.accordion-icon-toggle')
 
-    const cookieControllers = document.querySelectorAll<HTMLElement>('.accordion-header')
+        arrowElements.forEach((btn) => {
+            btn.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    this.toggleFirstAccordion(btn)
+                }
+            })
+        })
 
-    cookieControllers.forEach((btn) => {
-      btn.addEventListener('click', (e: MouseEvent) => {
-        const target = e!.target as Element
-        if (target.closest('.thumb') || target.closest('.track')) {
-          return
-        }
-        this.toggleFirstAccordion(btn)
-      })
-    })
-  }
+        const cookieControllers = document.querySelectorAll<HTMLElement>('.accordion-header')
 
-  toggleFirstAccordion(btn: HTMLElement) {
-    const el = btn.closest('.accordion-item')!
-    el.querySelector('.accordion-content')!.toggleAttribute('hidden')
-    el.classList.toggle('open')
-  }
+        cookieControllers.forEach((btn) => {
+            btn.addEventListener('click', (e: MouseEvent) => {
+                const target = e!.target as Element
+                if (target.closest('.thumb') || target.closest('.track')) {
+                    return
+                }
+                this.toggleFirstAccordion(btn)
+            })
+        })
+    }
 
-  events() {
-    window.ccListen('consentGiven', (e) => {
-      document.getElementById('consent-banner')!.classList.add('hidden')
+    toggleFirstAccordion(btn: HTMLElement) {
+        const el = btn.closest('.accordion-item')!
+        el.querySelector('.accordion-content')!.toggleAttribute('hidden')
+        el.classList.toggle('open')
+    }
 
-      // @todo check this line
-      window.ccDispatch('renderCookieIcon', {
-        directions: { x: '', y: '' }, icon: '', position: 'right'
+    events() {
+        window.ccListen('consentGiven', (e) => {
+            document.getElementById('consent-banner')!.classList.add('hidden')
 
-      })
-    })
-  }
+            // @todo check this line
+            window.ccDispatch('renderCookieIcon', {
+                directions: {x: '', y: ''}, icon: '', position: 'right'
 
-  registerSwitches(): void {
-    document.querySelectorAll<HTMLElement>('.toggle').forEach((toggle) => {
-      toggle.addEventListener('click', () => {
-        this.handleSwitch(toggle)
-      })
+            })
+        })
+    }
 
-      toggle.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Enter') {
-          e.preventDefault()
-          this.handleSwitch(toggle)
-        }
-      })
-    })
-  }
+    registerSwitches(): void {
+        document.querySelectorAll<HTMLElement>('.toggle').forEach((toggle) => {
+            toggle.addEventListener('click', () => {
+                this.handleSwitch(toggle)
+            })
 
-  handleSwitch(toggle: HTMLElement) {
-    const checkbox = toggle.querySelector<HTMLInputElement>('input[type="checkbox"]')
-    if (!checkbox) return
+            toggle.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault()
+                    this.handleSwitch(toggle)
+                }
+            })
+        })
+    }
 
-    checkbox.checked = !checkbox.checked
-  }
+    handleSwitch(toggle: HTMLElement) {
+        const checkbox = toggle.querySelector<HTMLInputElement>('input[type="checkbox"]')
+        if (!checkbox) return
 
-  private registerCookieIconTabOpen() {
-    window.ccListen('openBanner', (e) => {
-      if (e.tab) {
-        this.openTab(e.tab)
-      }
-    })
-  }
+        checkbox.checked = !checkbox.checked
+    }
+
+    private registerCookieIconTabOpen() {
+        window.ccListen('openBanner', (e) => {
+            if (e.tab) {
+                this.openTab(e.tab)
+            }
+        })
+    }
 }
