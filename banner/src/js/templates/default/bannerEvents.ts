@@ -19,11 +19,8 @@ export class BannerEvents extends AbstractEvents {
     registerConsentButtons() {
         this.onConsentClick('rejectAll', () => {
             ccDispatchEvent('consentGiven', {
-                country: this.country,
-                method: 'rejectAll',
+                method: 'acceptAll',
                 consent: ['functional'],
-                consentId: this.consentId,
-                domain: this.domain,
             })
         })
 
@@ -38,9 +35,6 @@ export class BannerEvents extends AbstractEvents {
             ccDispatchEvent('consentGiven', {
                 method: 'rejectAll',
                 consent: selected,
-                consentId: this.consentId,
-                domain: this.domain,
-                country: this.country,
             })
         })
 
@@ -53,19 +47,13 @@ export class BannerEvents extends AbstractEvents {
             ccDispatchEvent('consentGiven', {
                 method: 'acceptAll',
                 consent: ['functional', 'marketing', 'analytics'],
-                consentId: this.consentId,
-                domain: this.domain,
-                country: this.country,
             })
         })
 
         this.onConsentClick('close-button', () => {
             ccDispatchEvent('consentGiven', {
-                method: 'closeButton',
+                method: 'closeIcon',
                 consent: ['functional'],
-                consentId: this.consentId,
-                domain: this.domain,
-                country: this.country,
             })
         })
     }
@@ -184,11 +172,7 @@ export class BannerEvents extends AbstractEvents {
         window.ccListen('consentGiven', (e) => {
             document.getElementById('consent-banner')!.classList.add('hidden')
 
-            // @todo check this line
-            window.ccDispatch('renderCookieIcon', {
-                directions: {x: '', y: ''}, icon: '', position: 'right'
-
-            })
+            window.ccDispatch('renderCookieIcon')
         })
     }
 

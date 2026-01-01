@@ -2,10 +2,6 @@ import { PluginInterface } from '@/js/app/interfaces/PluginInterface'
 import AbstractCustomBannerElement from '@/js/app/plugins/AbstractCustomBannerElement'
 
 class CustomBannerPlugin extends AbstractCustomBannerElement implements PluginInterface {
-  isDefined(): boolean {
-    return true
-  }
-
   register() {
     const template = window.ccCustomHtml
 

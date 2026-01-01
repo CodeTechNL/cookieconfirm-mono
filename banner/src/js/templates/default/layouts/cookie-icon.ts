@@ -1,8 +1,8 @@
-import { CookieIconStorageInterface } from '@/js/app/interfaces/StylingInterface'
+import { CookieIconInterface } from '@/js/app/interfaces/StylingInterface'
 
 class CookieIcon {
-  private readonly data: CookieIconStorageInterface
-  constructor(data: CookieIconStorageInterface) {
+  private readonly data: CookieIconInterface
+  constructor(data: CookieIconInterface) {
     this.data = data
   }
 
@@ -28,6 +28,7 @@ class CookieIcon {
     document.getElementById('cc-icon')!.addEventListener('click', () => {
       window.ccDispatch('openBanner', {
         tab: 'tab2',
+        country: '',
       })
     })
   }

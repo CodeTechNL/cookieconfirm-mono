@@ -5,6 +5,14 @@ import ApiService from '@/js/app/services/ApiService'
 import {getBrowserLanguage, getGeoCountryUrl, getLocale} from '@/js/app/helpers'
 import CountryResolver from '@/js/app/resolvers/CountryResolver'
 
+export interface ResolvedBannerData {
+    banner: BannerDesignInterface
+    translations: TranslationsInterface
+    cookies: CookieListType
+    country: string,
+    excludePaths: string[]
+}
+
 class BannerResolver {
     apiService: typeof ApiService
 
@@ -12,13 +20,7 @@ class BannerResolver {
         this.apiService = apiService
     }
 
-    async resolve(): Promise<{
-        banner: BannerDesignInterface
-        translations: TranslationsInterface
-        cookies: CookieListType
-        country: string,
-        excludePaths: string[]
-    }> {
+    async resolve(): Promise<ResolvedBannerData> {
         return new Promise((resolve) => {
             Promise.all([this.apiService.getInit(), CountryResolver.resolve()]).then(
                 ([initData, country]) => {

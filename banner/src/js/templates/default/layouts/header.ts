@@ -10,7 +10,7 @@ export default class Header extends AbstractLayout {
             <div class="company-logo-container">
                 ${this.getPoweredBy(this.banner.branding.url, this.banner.branding.logo_right)}
                     <div id="close-button" tabindex="0">
-                        ${this.getCloseIcon()}
+                        ${this.banner.functional.dismissButton ? this.getCloseIcon() : ``}
                     </div>
             </div>
         </div>

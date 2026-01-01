@@ -4,8 +4,10 @@ import { fileURLToPath, URL } from 'node:url'
 import { resolve } from 'path'
 import * as dotenv from 'dotenv'
 import * as dotenvExpand from 'dotenv-expand'
-import { copyOnDev } from './vite-copy'
-import { mockApiPlugin } from './vite-store-consent'
+import { copyOnDev } from './vite/vite-copy'
+import { mockApiPlugin } from './vite/vite-store-consent'
+import removeComments from './vite/remove-comments'
+import cleanup from 'rollup-plugin-cleanup';
 
 const envResult = dotenv.config({ path: '.env' })
 dotenvExpand.expand(envResult)
@@ -13,8 +15,15 @@ dotenvExpand.expand(envResult)
 export default defineConfig(({ mode }) => ({
   build: {
     terserOptions: {
-      compress: { defaults: true, drop_console: true, drop_debugger: true, passes: 3 },
-      format: { comments: false },
+      compress: {
+        defaults: true,
+        drop_console: true,
+        drop_debugger: true,
+        passes: 3,
+      },
+      format: {
+        comments: false
+      },
       ecma: 2020,
       module: true,
       toplevel: true,
@@ -55,6 +64,6 @@ export default defineConfig(({ mode }) => ({
         { from: './src/images', to: './public/images' },
         { from: './development/data-sources', to: './public/banner' },
       ],
-    }),
+    })
   ],
 }))

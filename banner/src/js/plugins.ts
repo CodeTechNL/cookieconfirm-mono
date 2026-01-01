@@ -8,9 +8,11 @@ import UetPlugin from '@/js/app/plugins/UetPlugin'
 import WordpressPlugin from '@/js/app/plugins/WordpressPlugin'
 import GtmPlugin from '@/js/app/plugins/GtmPlugin'
 import CookieIconPlugin from '@/js/app/plugins/CookieIconPlugin'
+import ImplicitConsentPlugin from '@/js/app/plugins/ImplicitConsentPlugin'
 
 const plugins = new PluginLoader([
   ConsentPlugin,
+  ImplicitConsentPlugin,
   GtmPlugin,
   MatomoPlugin,
   ClarityPlugin,

@@ -9,11 +9,11 @@ class LocalStorageService {
     return JSON.parse(localStorage.getItem(key) as string)
   }
 
-  setCountry(country: string | null) {
+  setCountry(country: string | null): void {
     this.setValue('cc_location', country)
   }
 
-  getCountry() {
+  getCountry(): string {
     return this.getValue('cc_location')
   }
 

@@ -17,10 +17,18 @@ const init = async (layout: TemplateConcrete, events: EventsConcrete) => {
   const banner = new BannerService(layout, events, window.ccDomain, bannerData, consentId)
   banner.register()
 
+  ccDispatchEvent('initConsentPlugin', {
+    path: window.location.pathname,
+    country: bannerData.country,
+    consentId: consentId,
+  })
+
+  ccDispatchEvent('enableImplicitConsent', {
+    enabled: !givenConsent.length && bannerData.banner.functional.implicitConsent
+  })
+
   if (!givenConsent.length) {
-    localStorageService.setCookieIcon(
-      bannerData.banner.cookieIcon
-    )
+    localStorageService.setCookieIcon(bannerData.banner.cookieIcon)
 
     if (!bannerData.excludePaths.includes(window.location.pathname)) {
       ccDispatchEvent('openBanner', {
@@ -29,8 +37,7 @@ const init = async (layout: TemplateConcrete, events: EventsConcrete) => {
       })
     }
   } else {
-    const cookieIcon = localStorageService.getCookieIcon()
-    ccDispatchEvent('renderCookieIcon', cookieIcon)
+    ccDispatchEvent('renderCookieIcon', localStorageService.getCookieIcon())
     ccDispatchEvent('enableConsent', givenConsent)
   }
 }

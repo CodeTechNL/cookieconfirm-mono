@@ -1,26 +1,44 @@
-import {ConsentTypes, TabTypes} from '@/js/app/types'
-import {CookieIconStorageInterface} from '@/js/app/interfaces/StylingInterface'
+import { ConsentTypes, EventsConcrete, TabTypes, TemplateConcrete } from '@/js/app/types'
+import { CookieIconInterface } from '@/js/app/interfaces/StylingInterface'
+
+export type ConsentMethods =
+  | 'acceptAll'
+  | 'acceptSelection'
+  | 'rejectAll'
+  | 'implicitAsideClick'
+  | 'implicitScroll'
+  | 'closeIcon'
 
 export type EventDetailMap = {
-    bannerRendered: void,
-    consentGiven: {
-        country: string | null
-        method: string
-        consent: ConsentTypes[]
-        consentId: string
-        domain: string
-    }
-    enableConsent: ConsentTypes[]
-    consentIdSet: {
-        id: string
-    }
-    openBanner: {
-        tab?: TabTypes,
-        consentId?: string
-        country: string
-    }
-    renderCookieIcon: CookieIconStorageInterface | void
-    // voeg hier je andere events toe...
+  enableImplicitConsent: {
+    enabled: boolean
+  }
+  initConsentPlugin: {
+    path: string
+    country: string
+    consentId: string
+  }
+  bannerRendered: void
+  resolveBanner: {
+    consentId: string
+    banner: TemplateConcrete
+    events: EventsConcrete
+  }
+  consentGiven: {
+    method: ConsentMethods
+    consent: ConsentTypes[]
+  }
+  enableConsent: ConsentTypes[]
+  consentIdSet: {
+    id: string
+  }
+  openBanner: {
+    tab?: TabTypes
+    consentId?: string
+    country: string
+  }
+  renderCookieIcon: CookieIconInterface | void
+  // voeg hier je andere events toe...
 }
 
 // 2) EventTypes is de set keys uit de map
@@ -28,64 +46,58 @@ export type EventTypes = keyof EventDetailMap
 
 // Dispatch: detail type volgt automatisch uit het event
 export function ccDispatchEvent<E extends keyof EventDetailMap>(
-    event: E,
-    ...payload: EventDetailMap[E] extends void ? [] : [EventDetailMap[E]]
+  event: E,
+  ...payload: EventDetailMap[E] extends void ? [] : [EventDetailMap[E]]
 ) {
-    window.dispatchEvent(
-        new CustomEvent(event, {detail: payload[0]})
-    )
+  window.dispatchEvent(new CustomEvent(event, { detail: payload[0] }))
 }
 
 // Listen: callback krijgt het juiste detail type voor het event
 export const ccOnEvent = <E extends EventTypes>(
-    event: E,
-    cb: (detail: EventDetailMap[E]) => void,
+  event: E,
+  cb: (detail: EventDetailMap[E]) => void,
 ): (() => void) => {
-    const handler = (e: Event) => {
-        cb((e as CustomEvent<EventDetailMap[E]>).detail)
-    }
-    window.addEventListener(event, handler as EventListener)
-    return () => window.removeEventListener(event, handler as EventListener)
+  const handler = (e: Event) => {
+    cb((e as CustomEvent<EventDetailMap[E]>).detail)
+  }
+  window.addEventListener(event, handler as EventListener)
+  return () => window.removeEventListener(event, handler as EventListener)
 }
 
 export const generateUuid = (): string => {
-    return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
-        (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16),
-    )
+  return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
+    (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16),
+  )
 }
 
 export const getGeoCountryUrl = (country: string, geoRules: string[]): string | null => {
-    if (geoRules.includes(country)) {
-        return `banner-${country}.json`
-    }
+  if (geoRules.includes(country)) {
+    return `banner-${country}.json`
+  }
 
-    return null
+  return null
 }
 
 export const getBrowserLanguage = (): string => {
-    return navigator.language.split('-')[0].toLowerCase()
+  return navigator.language.split('-')[0].toLowerCase()
 }
 
 export const getLocale = (
-    language: string,
-    availableLanguages: string[],
-    fallback?: string | null | undefined,
+  language: string,
+  availableLanguages: string[],
+  fallback?: string | null | undefined,
 ): string => {
-    if (availableLanguages.includes(language)) {
-        return language
-    }
+  if (availableLanguages.includes(language)) {
+    return language
+  }
 
-    return fallback!
+  return fallback!
 }
 
-const isNode =
-    typeof process !== 'undefined' &&
-    typeof process.env !== 'undefined';
+const isNode = typeof process !== 'undefined' && typeof process.env !== 'undefined'
 
-export const CDN_URL = isNode
-    ? process.env.VITE_CDN_URL
-    : import.meta.env.VITE_CDN_URL;
+export const CDN_URL = isNode ? process.env.VITE_CDN_URL : import.meta.env.VITE_CDN_URL
 
 export const CONSENT_STORAGE_URL = isNode
-    ? process.env.VITE_CONSENT_STORAGE_URL
-    : import.meta.env.VITE_CONSENT_STORAGE_URL;
+  ? process.env.VITE_CONSENT_STORAGE_URL
+  : import.meta.env.VITE_CONSENT_STORAGE_URL

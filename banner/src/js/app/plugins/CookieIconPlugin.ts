@@ -9,10 +9,6 @@ class CookieIconPlugin implements PluginInterface {
     this.localStorage = localStorage
   }
 
-  isDefined(): boolean {
-    return true
-  }
-
   register() {
     window.ccListen('renderCookieIcon', (e) => {
       if (!this.cookieIcon) {

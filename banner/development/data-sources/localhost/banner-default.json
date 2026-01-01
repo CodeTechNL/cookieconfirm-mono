@@ -54,8 +54,8 @@
   "functional": {
     "defaultConsent": ["functional"],
     "buttons": ["acceptAll", "rejectAll", "allowSelection", "customizeSelection"],
-    "implicitConsent": false,
-    "dismissButton": false,
+    "implicitConsent": true,
+    "dismissButton": true,
     "customizeSelectionButton": true
   },
   "domain": {
