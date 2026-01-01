@@ -7,11 +7,19 @@ export default class Footer extends AbstractLayout {
     <div class="flex-responsive">
         <div class="footer-content">
             ${button(this.translations.btn_reject_all, "rejectAll")}
-            ${button(this.translations.btn_customize_selection, "customizeSelection")}
+            ${this.getCustomizeSelectionButton()}
             ${button(this.translations.btn_allow_selection, "allowSelection")}
             ${button(this.translations.btn_accept_all, "acceptAll")}
         </div>
     </div>
     `;
     }
+
+  private getCustomizeSelectionButton():string {
+    if(this.banner.functional.customizeSelectionButton){
+      return button(this.translations.btn_customize_selection, "customizeSelection");
+    }
+
+    return ``;
+  }
 }

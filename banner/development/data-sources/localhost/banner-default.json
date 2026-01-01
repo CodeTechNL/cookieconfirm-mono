@@ -34,16 +34,22 @@
     "general": {
       "fontColor": "#000000",
       "fontSize": "16px",
-      "tabs": "blue",
-      "company_logo": "/images/image-website.png"
+      "tabs": "blue"
+    }
+  },
+  "cookieIcon": {
+    "icon": "https://assets.cookieconfirm.com/images/icons/icon-orange.png",
+    "position": "left",
+    "directions": {
+      "x": "50px",
+      "y": "50px"
     }
   },
   "branding": {
-    "icon": "https://assets.cookieconfirm.com/images/icons/icon-orange.png",
-    "logo": "/images/logo.png",
+    "logo_left": "/images/logo.png",
+    "logo_right": "/images/logo.png",
     "url": "https://cookieconfirm-website.test",
-    "name": "Cookie Confirm",
-    "position": "left"
+    "name": "Cookie Confirm"
   },
   "functional": {
     "defaultConsent": ["functional"],

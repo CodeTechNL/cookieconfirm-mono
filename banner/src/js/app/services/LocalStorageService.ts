@@ -1,9 +1,5 @@
 import { LocalStorageTypes } from '@/js/app/types'
-import {
-  CookieIconPosition,
-  CookieIconStorageInterface,
-  StylingInterface,
-} from '@/js/app/interfaces/StylingInterface'
+import { CookieIconInterface } from '@/js/app/interfaces/StylingInterface'
 
 class LocalStorageService {
   setValue(key: LocalStorageTypes, value: any) {
@@ -21,19 +17,11 @@ class LocalStorageService {
     return this.getValue('cc_location')
   }
 
-  setCookieIcon(icon: string, position: CookieIconPosition, x: string, y: string) {
-    const store = {
-      icon: icon,
-      position: position,
-      directions: {
-        x,
-        y,
-      },
-    }
-    this.setValue('cc_cookie_icon', store)
+  setCookieIcon(data: CookieIconInterface) {
+    this.setValue('cc_cookie_icon', data)
   }
 
-  getCookieIcon(): CookieIconStorageInterface {
+  getCookieIcon(): CookieIconInterface {
     return this.getValue('cc_cookie_icon')
   }
 }

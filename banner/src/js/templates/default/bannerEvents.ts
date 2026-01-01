@@ -91,7 +91,7 @@ export class BannerEvents extends AbstractEvents {
     }
 
     onConsentClick(element: ButtonTypes | string, cb?: () => void) {
-        document.getElementById(element)!.addEventListener('click', () => {
+        document.getElementById(element)?.addEventListener('click', () => {
             console.log('clicked on ' + element)
             if (cb) cb()
         })

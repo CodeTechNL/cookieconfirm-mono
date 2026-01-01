@@ -16,7 +16,8 @@ class BannerResolver {
         banner: BannerDesignInterface
         translations: TranslationsInterface
         cookies: CookieListType
-        country: string
+        country: string,
+        excludePaths: string[]
     }> {
         return new Promise((resolve) => {
             Promise.all([this.apiService.getInit(), CountryResolver.resolve()]).then(
@@ -34,7 +35,7 @@ class BannerResolver {
                         this.apiService.getCookies(locale, initData.version),
                     ]).then(([banner, translations, cookies]) => {
                         console.log(country);
-                        resolve({banner, translations, cookies, country})
+                        resolve({banner, translations, cookies, country, excludePaths: initData.excludePaths})
                     })
                 },
             )

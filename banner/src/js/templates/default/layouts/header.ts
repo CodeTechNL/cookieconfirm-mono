@@ -8,7 +8,7 @@ export default class Header extends AbstractLayout {
                 ${this.getWebsiteLogo()}
             </div>
             <div class="company-logo-container">
-                ${this.getPoweredBy(this.banner.branding.url, this.banner.branding.logo)}
+                ${this.getPoweredBy(this.banner.branding.url, this.banner.branding.logo_right)}
                     <div id="close-button" tabindex="0">
                         ${this.getCloseIcon()}
                     </div>
@@ -18,7 +18,7 @@ export default class Header extends AbstractLayout {
     }
 
     getWebsiteLogo() {
-        return `<img id="logo" src="${this.banner.design.general.company_logo}" alt="${this.banner.branding.name}" />`;
+        return `<img id="logo" src="${this.banner.branding.logo_left}" alt="${this.banner.branding.name}" />`;
     }
 
     getPoweredBy(websiteUrl: string, websiteLogoUrl: string) {
