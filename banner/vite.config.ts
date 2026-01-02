@@ -5,15 +5,15 @@ import { resolve } from 'path'
 import * as dotenv from 'dotenv'
 import * as dotenvExpand from 'dotenv-expand'
 import { copyOnDev } from './vite/vite-copy'
+import { htmlTemplateMinifier } from './vite/html-template-minifier'
 import { mockApiPlugin } from './vite/vite-store-consent'
-import removeComments from './vite/remove-comments'
-import cleanup from 'rollup-plugin-cleanup';
 
 const envResult = dotenv.config({ path: '.env' })
 dotenvExpand.expand(envResult)
 
 export default defineConfig(({ mode }) => ({
   build: {
+    minify: 'terser',
     terserOptions: {
       compress: {
         defaults: true,
@@ -58,6 +58,9 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     mockApiPlugin(),
+    // Minify whitespace in HTML template literals used by our banner templates during build
+    // (keeps dev readability while producing compact output)
+    htmlTemplateMinifier(),
     copyOnDev({
       copies: [
         { from: './development/misc', to: './public' },
